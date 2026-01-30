@@ -1,67 +1,76 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Respiratory Health Risk Platform | SDG-3</title>
     <meta name="description" content="Real-time respiratory health risk monitoring platform aligned with UN SDG-3">
-    
+
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    
+
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
-    
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap"
+        rel="stylesheet">
+
     <link rel="stylesheet" href="styles.css">
 </head>
+
 <body>
     <div id="app">
         <!-- Login Page -->
         <div id="login-page" class="page active">
             <div class="login-container">
                 <div class="login-card">
-                    <div class="login-header">
-                        <div class="logo-section">
-                            <div class="logo-icon">🫁</div>
-                            <h1 id="login-title">Respiratory Health Platform</h1>
+                    <div class="login-header text-center">
+                        <div class="pin-icon-container">
+                            <div class="pin-icon">📍</div>
                         </div>
-                        <p id="login-subtitle" class="subtitle">SDG-3: Good Health and Well-being</p>
+                        <h1 id="login-title" class="title-large">Air Quality Monitor</h1>
+                        <p id="login-subtitle" class="subtitle-text">Safeguarding public health, one breath at a time.
+                        </p>
                     </div>
-                    
-                    <form id="login-form" class="login-form">
-                        <div class="form-group">
-                            <label for="username" id="label-username">Username</label>
-                            <input type="text" id="username" name="username" required autocomplete="username">
+
+                    <div class="role-selection-container">
+                        <h3 class="role-select-title">Select Your Role</h3>
+
+                        <div class="role-cards">
+                            <div class="role-card" data-role="health_officer" onclick="selectRole('health_officer')">
+                                <div class="role-icon">★</div>
+                                <div class="role-info">
+                                    <h4>Health Officer</h4>
+                                    <p>Medical decision support</p>
+                                </div>
+                            </div>
+
+                            <div class="role-card" data-role="urban_planner" onclick="selectRole('urban_planner')">
+                                <div class="role-icon">📊</div>
+                                <div class="role-info">
+                                    <h4>Urban Planner</h4>
+                                    <p>Infrastructure insights</p>
+                                </div>
+                            </div>
+
+                            <div class="role-card" data-role="beneficiary" onclick="selectRole('beneficiary')">
+                                <div class="role-icon">👤</div>
+                                <div class="role-info">
+                                    <h4>Citizen</h4>
+                                    <p>Personal health guidance</p>
+                                </div>
+                            </div>
                         </div>
-                        
-                        <div class="form-group">
-                            <label for="password" id="label-password">Password</label>
-                            <input type="password" id="password" name="password" required autocomplete="current-password">
-                        </div>
-                        
-                        <button type="submit" id="login-button" class="btn-primary">
-                            <span id="login-btn-text">Sign In</span>
+
+                        <button id="login-button" class="btn-login-large" onclick="handleLogin()">
+                            Login
                         </button>
-                        
-                        <div id="login-error" class="error-message"></div>
-                    </form>
-                    
-                    <div class="demo-credentials">
-                        <p id="demo-title">Demo Credentials:</p>
-                        <div class="credential-list">
-                            <div class="credential-item">
-                                <strong>Health Officer:</strong> health_officer / health123
-                            </div>
-                            <div class="credential-item">
-                                <strong>Urban Planner:</strong> urban_planner / planner123
-                            </div>
-                            <div class="credential-item">
-                                <strong>Beneficiary:</strong> beneficiary / user123
-                            </div>
-                        </div>
                     </div>
+
+                    <!-- Hidden generic error div for compatibility -->
+                    <div id="login-error" class="error-message" style="display:none;"></div>
                 </div>
-                
+
                 <button id="lang-toggle-login" class="lang-toggle">
                     <span class="lang-icon">🌐</span>
                     <span id="lang-text-login">EN</span>
@@ -102,74 +111,81 @@
 
             <div class="dashboard-content">
                 <div class="dashboard-grid">
-                    <!-- Heatmap Section -->
-                    <div class="card card-large">
-                        <div class="card-header">
-                            <h3 id="ho-heatmap-title">Respiratory Severity Heatmap</h3>
-                            <div class="update-time" id="ho-update-time">Updated: --</div>
+                    <!-- Left Column -->
+                    <div class="left-column">
+                        <!-- Heatmap Section -->
+                        <div class="card card-heatmap">
+                            <div class="card-header">
+                                <h3 id="ho-heatmap-title">Respiratory Severity Heatmap</h3>
+                                <div class="update-time" id="ho-update-time">Updated: --</div>
+                            </div>
+                            <div id="ho-map" class="map-container"></div>
+                            <div class="map-legend">
+                                <div class="legend-item">
+                                    <span class="legend-color" style="background: #00E676;"></span>
+                                    <span id="legend-low">Low (0-50)</span>
+                                </div>
+                                <div class="legend-item">
+                                    <span class="legend-color" style="background: #FFD54F;"></span>
+                                    <span id="legend-mild">Mild (51-100)</span>
+                                </div>
+                                <div class="legend-item">
+                                    <span class="legend-color" style="background: #FF6B35;"></span>
+                                    <span id="legend-high">High (101-200)</span>
+                                </div>
+                                <div class="legend-item">
+                                    <span class="legend-color" style="background: #E53935;"></span>
+                                    <span id="legend-severe">Severe (201+)</span>
+                                </div>
+                            </div>
                         </div>
-                        <div id="ho-map" class="map-container"></div>
-                        <div class="map-legend">
-                            <div class="legend-item">
-                                <span class="legend-color" style="background: #00E676;"></span>
-                                <span id="legend-low">Low (0-50)</span>
-                            </div>
-                            <div class="legend-item">
-                                <span class="legend-color" style="background: #FFD54F;"></span>
-                                <span id="legend-mild">Mild (51-100)</span>
-                            </div>
-                            <div class="legend-item">
-                                <span class="legend-color" style="background: #FF6B35;"></span>
-                                <span id="legend-high">High (101-200)</span>
-                            </div>
-                            <div class="legend-item">
-                                <span class="legend-color" style="background: #E53935;"></span>
-                                <span id="legend-severe">Severe (201+)</span>
-                            </div>
-                        </div>
-                    </div>
 
-                    <!-- Medical Severity Classification -->
-                    <div class="card">
-                        <div class="card-header">
-                            <h3 id="ho-severity-title">Medical Severity Classification</h3>
-                        </div>
-                        <div class="severity-summary" id="ho-severity-summary">
-                            <div class="severity-main" id="ho-severity-main">
-                                <div class="severity-badge severe">SEVERE</div>
-                                <p id="ho-zones-affected">-- zones affected</p>
+                        <!-- Medical Measures Box (Under Heatmap) -->
+                        <div class="card medical-measures-card">
+                            <div class="card-header">
+                                <h3 id="ho-measures-title">🏥 Recommended Medical Measures</h3>
                             </div>
-                            <div class="severity-breakdown" id="ho-severity-breakdown">
+                            <div class="medical-measures" id="ho-medical-measures">
                                 <!-- Populated by JS -->
                             </div>
                         </div>
                     </div>
 
-                    <!-- Population at Risk -->
-                    <div class="card">
-                        <div class="card-header">
-                            <h3 id="ho-population-title">Population at Risk</h3>
+                    <!-- Right Column -->
+                    <div class="right-column">
+                        <!-- Medical Severity Classification -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 id="ho-severity-title">Medical Severity Classification</h3>
+                            </div>
+                            <div class="severity-summary" id="ho-severity-summary">
+                                <div class="severity-main" id="ho-severity-main">
+                                    <div class="severity-badge severe">SEVERE</div>
+                                    <p id="ho-zones-affected">-- zones affected</p>
+                                </div>
+                                <div class="severity-breakdown" id="ho-severity-breakdown">
+                                    <!-- Populated by JS -->
+                                </div>
+                            </div>
                         </div>
-                        <div class="population-stats" id="ho-population-stats">
-                            <!-- Populated by JS -->
-                        </div>
-                    </div>
 
-                    <!-- Suggested Medical Measures -->
-                    <div class="card card-full">
-                        <div class="card-header">
-                            <h3 id="ho-measures-title">🏥 Recommended Medical Measures</h3>
+                        <!-- Population at Risk -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 id="ho-population-title">Population at Risk</h3>
+                            </div>
+                            <div class="population-stats" id="ho-population-stats">
+                                <!-- Populated by JS -->
+                            </div>
                         </div>
-                        <div class="medical-measures" id="ho-medical-measures">
-                            <!-- Populated by JS -->
-                        </div>
-                        <div class="card-actions">
-                            <button class="btn-primary" id="ho-generate-advisory">
-                                <span id="ho-generate-text">Generate Advisory Document</span>
-                            </button>
-                            <button class="btn-secondary" id="ho-send-alert">
-                                <span id="ho-send-text">Send Alert to Beneficiaries</span>
-                            </button>
+
+                        <!-- Action Buttons Card -->
+                        <div class="card action-buttons-card">
+                            <div class="card-actions">
+                                <button class="btn-secondary" id="ho-send-alert">
+                                    <span id="ho-send-text">Send Alert to Beneficiaries</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -348,9 +364,10 @@
 
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    
+
     <!-- App Scripts -->
     <script src="translations.js"></script>
     <script src="app.js"></script>
 </body>
+
 </html>

@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Respiratory Health Risk Platform | SDG-3</title>
+    <meta name="description" content="Real-time respiratory health risk monitoring platform aligned with UN SDG-3">
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Login Page -->
+        <div id="login-page" class="page active">
+            <div class="login-container">
+                <div class="login-card">
+                    <div class="login-header">
+                        <div class="logo-section">
+                            <div class="logo-icon">🫁</div>
+                            <h1 id="login-title">Respiratory Health Platform</h1>
+                        </div>
+                        <p id="login-subtitle" class="subtitle">SDG-3: Good Health and Well-being</p>
+                    </div>
+                    
+                    <form id="login-form" class="login-form">
+                        <div class="form-group">
+                            <label for="username" id="label-username">Username</label>
+                            <input type="text" id="username" name="username" required autocomplete="username">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="password" id="label-password">Password</label>
+                            <input type="password" id="password" name="password" required autocomplete="current-password">
+                        </div>
+                        
+                        <button type="submit" id="login-button" class="btn-primary">
+                            <span id="login-btn-text">Sign In</span>
+                        </button>
+                        
+                        <div id="login-error" class="error-message"></div>
+                    </form>
+                    
+                    <div class="demo-credentials">
+                        <p id="demo-title">Demo Credentials:</p>
+                        <div class="credential-list">
+                            <div class="credential-item">
+                                <strong>Health Officer:</strong> health_officer / health123
+                            </div>
+                            <div class="credential-item">
+                                <strong>Urban Planner:</strong> urban_planner / planner123
+                            </div>
+                            <div class="credential-item">
+                                <strong>Beneficiary:</strong> beneficiary / user123
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <button id="lang-toggle-login" class="lang-toggle">
+                    <span class="lang-icon">🌐</span>
+                    <span id="lang-text-login">EN</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Loading Screen -->
+        <div id="loading-page" class="page">
+            <div class="loading-container">
+                <div class="breathing-animation">
+                    <div class="lung-icon">🫁</div>
+                </div>
+                <h2 id="loading-text" class="loading-text">Analyzing respiratory risk data...</h2>
+                <div class="progress-bar">
+                    <div class="progress-fill"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Health Officer Dashboard -->
+        <div id="health-officer-dashboard" class="page dashboard">
+            <header class="dashboard-header">
+                <div class="header-left">
+                    <div class="logo-small">🫁</div>
+                    <h1 id="ho-dashboard-title">Health Officer Dashboard</h1>
+                </div>
+                <div class="header-right">
+                    <button id="lang-toggle-ho" class="lang-toggle">
+                        <span class="lang-icon">🌐</span>
+                        <span id="lang-text-ho">EN</span>
+                    </button>
+                    <button id="logout-ho" class="btn-secondary">
+                        <span id="logout-text-ho">Logout</span>
+                    </button>
+                </div>
+            </header>
+
+            <div class="dashboard-content">
+                <div class="dashboard-grid">
+                    <!-- Heatmap Section -->
+                    <div class="card card-large">
+                        <div class="card-header">
+                            <h3 id="ho-heatmap-title">Respiratory Severity Heatmap</h3>
+                            <div class="update-time" id="ho-update-time">Updated: --</div>
+                        </div>
+                        <div id="ho-map" class="map-container"></div>
+                        <div class="map-legend">
+                            <div class="legend-item">
+                                <span class="legend-color" style="background: #00E676;"></span>
+                                <span id="legend-low">Low (0-50)</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color" style="background: #FFD54F;"></span>
+                                <span id="legend-mild">Mild (51-100)</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color" style="background: #FF6B35;"></span>
+                                <span id="legend-high">High (101-200)</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color" style="background: #E53935;"></span>
+                                <span id="legend-severe">Severe (201+)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Medical Severity Classification -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 id="ho-severity-title">Medical Severity Classification</h3>
+                        </div>
+                        <div class="severity-summary" id="ho-severity-summary">
+                            <div class="severity-main" id="ho-severity-main">
+                                <div class="severity-badge severe">SEVERE</div>
+                                <p id="ho-zones-affected">-- zones affected</p>
+                            </div>
+                            <div class="severity-breakdown" id="ho-severity-breakdown">
+                                <!-- Populated by JS -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Population at Risk -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 id="ho-population-title">Population at Risk</h3>
+                        </div>
+                        <div class="population-stats" id="ho-population-stats">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+
+                    <!-- Suggested Medical Measures -->
+                    <div class="card card-full">
+                        <div class="card-header">
+                            <h3 id="ho-measures-title">🏥 Recommended Medical Measures</h3>
+                        </div>
+                        <div class="medical-measures" id="ho-medical-measures">
+                            <!-- Populated by JS -->
+                        </div>
+                        <div class="card-actions">
+                            <button class="btn-primary" id="ho-generate-advisory">
+                                <span id="ho-generate-text">Generate Advisory Document</span>
+                            </button>
+                            <button class="btn-secondary" id="ho-send-alert">
+                                <span id="ho-send-text">Send Alert to Beneficiaries</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Urban Planner Dashboard -->
+        <div id="urban-planner-dashboard" class="page dashboard">
+            <header class="dashboard-header">
+                <div class="header-left">
+                    <div class="logo-small">🫁</div>
+                    <h1 id="up-dashboard-title">Urban Planner Dashboard</h1>
+                </div>
+                <div class="header-right">
+                    <button id="lang-toggle-up" class="lang-toggle">
+                        <span class="lang-icon">🌐</span>
+                        <span id="lang-text-up">EN</span>
+                    </button>
+                    <button id="logout-up" class="btn-secondary">
+                        <span id="logout-text-up">Logout</span>
+                    </button>
+                </div>
+            </header>
+
+            <div class="dashboard-content">
+                <div class="dashboard-grid">
+                    <!-- Heatmap Section -->
+                    <div class="card card-large">
+                        <div class="card-header">
+                            <h3 id="up-heatmap-title">Respiratory Severity Heatmap</h3>
+                            <div class="update-time" id="up-update-time">Updated: --</div>
+                        </div>
+                        <div id="up-map" class="map-container"></div>
+                        <div class="map-legend">
+                            <div class="legend-item">
+                                <span class="legend-color" style="background: #00E676;"></span>
+                                <span id="up-legend-good">Good (0-50)</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color" style="background: #FFD54F;"></span>
+                                <span id="up-legend-moderate">Moderate (51-100)</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color" style="background: #FF6B35;"></span>
+                                <span id="up-legend-high">High (101-200)</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color" style="background: #E53935;"></span>
+                                <span id="up-legend-severe">Severe (201+)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Zone-Based Risk Patterns -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 id="up-zones-title">High-Risk Zones</h3>
+                        </div>
+                        <div class="zone-list" id="up-zone-list">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+
+                    <!-- Infrastructure Impact -->
+                    <div class="card card-full">
+                        <div class="card-header">
+                            <h3 id="up-infrastructure-title">🏗️ Infrastructure Intervention Simulator</h3>
+                        </div>
+                        <div class="simulator-content" id="up-simulator">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Beneficiary Dashboard -->
+        <div id="beneficiary-dashboard" class="page dashboard">
+            <header class="dashboard-header">
+                <div class="header-left">
+                    <div class="logo-small">🫁</div>
+                    <h1 id="ben-dashboard-title">Air Quality Status</h1>
+                </div>
+                <div class="header-right">
+                    <button id="lang-toggle-ben" class="lang-toggle">
+                        <span class="lang-icon">🌐</span>
+                        <span id="lang-text-ben">EN</span>
+                    </button>
+                    <button id="logout-ben" class="btn-secondary">
+                        <span id="logout-text-ben">Logout</span>
+                    </button>
+                </div>
+            </header>
+
+            <div class="dashboard-content beneficiary-content">
+                <!-- My Location Status -->
+                <div class="card card-status">
+                    <div class="status-content" id="ben-status-content">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
+                <!-- 24-Hour Forecast -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 id="ben-forecast-title">What to Expect Today</h3>
+                    </div>
+                    <div class="forecast-timeline" id="ben-forecast">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
+                <div class="dashboard-grid-2col">
+                    <!-- Simple Map -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 id="ben-map-title">Respiratory Risk Map</h3>
+                        </div>
+                        <div id="ben-map" class="map-container-simple"></div>
+                        <div class="map-legend-simple">
+                            <div class="legend-item">
+                                <span class="legend-color" style="background: #00E676;"></span>
+                                <span id="ben-legend-safe">Safe</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color" style="background: #FFD54F;"></span>
+                                <span id="ben-legend-careful">Be Careful</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color" style="background: #FF6B35;"></span>
+                                <span id="ben-legend-avoid">Avoid Outdoor</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color" style="background: #E53935;"></span>
+                                <span id="ben-legend-highrisk">High Risk</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Health Tips -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 id="ben-tips-title">💡 Health Tips for Today</h3>
+                        </div>
+                        <div class="health-tips" id="ben-health-tips">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Nearby Safe Zones -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 id="ben-safe-zones-title">🌳 Safer Areas Near You</h3>
+                    </div>
+                    <div class="safe-zones-list" id="ben-safe-zones">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alert Modal -->
+        <div id="alert-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 id="modal-title">Zone Details</h3>
+                    <button class="modal-close" id="modal-close">&times;</button>
+                </div>
+                <div class="modal-body" id="modal-body">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <!-- App Scripts -->
+    <script src="translations.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

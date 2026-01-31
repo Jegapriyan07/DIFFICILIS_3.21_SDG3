@@ -6,7 +6,7 @@ const translations = {
         'login.subtitle': 'SDG-3: Good Health and Well-being',
         'login.username': 'Username',
         'login.password': 'Password',
-        'login.button': 'Sign In',
+        'login.button': 'Continue as Selected Role',
         'login.demo': 'Demo Credentials:',
         'login.error': 'Invalid credentials. Please try again.',
 
@@ -50,6 +50,21 @@ const translations = {
         'measures.medium.2': 'Stockpile bronchodilators and emergency medications',
         'measures.medium.3': 'Prepare evacuation plan for critical care patients',
 
+        // Recommended Actions
+        'ho.recommended.actions.title': 'RECOMMENDED ACTIONS',
+        'action.immediate.title': 'Immediate Actions (0-6 Hours)',
+        'action.imm.1': 'Issue public advisories via SMS, radio, and local media',
+        'action.imm.2': 'Advise elderly, children, and asthma patients to stay indoors',
+        'action.imm.3': 'Ensure availability of nebulizers and inhalers at PHCs',
+        'action.short.title': 'Short-Term Actions (6-24 Hours)',
+        'action.short.1': 'Deploy mobile health camps in high-risk zones',
+        'action.short.2': 'Coordinate with municipal bodies for dust and traffic control',
+        'action.short.3': 'Increase respiratory OPD staffing during peak hours',
+        'action.prevent.title': 'Preventive Actions (24-72 Hours)',
+        'action.prevent.1': 'Review ward-level pollution trends',
+        'action.prevent.2': 'Prepare contingency plans for hospital capacity surge',
+        'action.prevent.3': 'Engage community health workers for surveillance',
+
         // Urban Planner Dashboard
         'up.dashboard.title': 'Urban Planner Dashboard',
         'up.heatmap.title': 'Respiratory Severity Heatmap',
@@ -69,6 +84,33 @@ const translations = {
         'ben.map.title': 'Respiratory Risk Map',
         'ben.tips.title': '💡 Health Tips for Today',
         'ben.safe.zones.title': '🌳 Safer Areas Near You',
+        'ben.precautions.title': '⚠️ PRECAUTIONARY MEASURES',
+
+        // AQI Status Descriptions
+        'ben.aqi.good': 'GOOD - Air quality is satisfactory',
+        'ben.aqi.moderate': 'MODERATE - Acceptable air quality',
+        'ben.aqi.unhealthy.sensitive': 'UNHEALTHY FOR SENSITIVE GROUPS',
+        'ben.aqi.unhealthy': 'UNHEALTHY - Everyone may begin to experience health effects',
+        'ben.aqi.very.unhealthy': 'VERY UNHEALTHY - Health alert: everyone may experience serious health effects',
+        'ben.aqi.hazardous': 'HAZARDOUS - Health warning: Emergency conditions',
+
+        // Precautionary Measures
+        'ben.precaution.stay.indoors': 'Stay Indoors',
+        'ben.precaution.stay.indoors.desc': 'Avoid going outside as much as possible',
+        'ben.precaution.use.masks': 'Use N95 Masks',
+        'ben.precaution.use.masks.desc': 'When going outdoors, wear a properly fitted N95 or KN95 mask',
+        'ben.precaution.air.purifier': 'Use Air Purifier',
+        'ben.precaution.air.purifier.desc': 'Run air purifiers with HEPA filters inside your home',
+        'ben.precaution.avoid.strenuous': 'Avoid Strenuous Activity',
+        'ben.precaution.avoid.strenuous.desc': 'Postpone outdoor exercise, sports, and heavy physical work',
+        'ben.precaution.seal.windows': 'Keep Windows Closed',
+        'ben.precaution.seal.windows.desc': 'Close windows and doors to minimize outdoor air intake',
+        'ben.precaution.vulnerable': 'Vulnerable Groups Alert',
+        'ben.precaution.vulnerable.desc': 'Children, elderly, and those with respiratory conditions should take extra care',
+        'ben.precaution.water': 'Stay Hydrated',
+        'ben.precaution.water.desc': 'Drink plenty of water to help your respiratory system',
+        'ben.precaution.monitor': 'Monitor Symptoms',
+        'ben.precaution.monitor.desc': 'Watch for coughing, wheezing, or difficulty breathing',
 
         // Severity Labels
         'severity.good': 'SAFE',
@@ -132,6 +174,12 @@ const translations = {
         'safezone.distance': 'Distance',
         'safezone.km': 'km',
 
+        // Weather Info
+        'weather.temperature': 'Temperature',
+        'weather.humidity': 'Humidity',
+        'weather.wind': 'Wind Speed',
+        'weather.uv': 'UV Index',
+
         // Modal
         'modal.zone': 'Zone',
         'modal.aqi': 'AQI',
@@ -141,6 +189,23 @@ const translations = {
         'modal.recommendation': 'Recommendation',
         'modal.zone.type': 'Zone Type',
         'modal.trend': 'Trend',
+
+        // Extra UI & labels
+        'system.tagline': 'Translating air quality into health risk and action.',
+        'ho.primary.title': "TODAY'S PRIMARY ACTION",
+        'ho.primary.none': 'No immediate actions required.',
+        'ho.prediction.confidence': 'Prediction Confidence',
+        'data.confidence.high': 'High',
+        'data.confidence.medium': 'Medium',
+        'data.confidence.low': 'Low',
+        'up.planning.note': 'Planning Scenario (Not Real-Time)',
+        'up.assumptions': 'Assumptions: model is rule-based / historical studies',
+        'up.policy.relevance': 'Policy Relevance: green zoning, traffic planning, etc.',
+        'ben.personalized.label': 'Personalized Advisory',
+        'ben.authority.trust': 'Verified by local health department',
+        'role.confirmation.template': 'You are viewing the {role} dashboard (Demo Mode)',
+        'role.selected.template': 'Continue as: {role}',
+
         'modal.planning.note': 'Planning Note'
     },
 
@@ -150,7 +215,7 @@ const translations = {
         'login.subtitle': 'SDG-3: अच्छा स्वास्थ्य और कल्याण',
         'login.username': 'उपयोगकर्ता नाम',
         'login.password': 'पासवर्ड',
-        'login.button': 'साइन इन करें',
+        'login.button': 'चुनें और जारी रखें',
         'login.demo': 'डेमो क्रेडेंशियल:',
         'login.error': 'अमान्य क्रेडेंशियल। कृपया पुनः प्रयास करें।',
 
@@ -188,6 +253,21 @@ const translations = {
         'measures.short': 'अल्पकालिक उपाय (6-24 घंटे):',
         'measures.short.1': 'प्रभावित क्षेत्रों में मोबाइल स्वास्थ्य शिविर स्थापित करें',
         'measures.short.2': 'स्कूलों के साथ बाहरी गतिविधियों को रद्द करने के लिए समन्वय करें',
+        
+        // Recommended Actions (Hindi)
+        'ho.recommended.actions.title': 'अनुशंसित कार्रवाई',
+        'action.immediate.title': 'तत्काल कार्रवाई (0-6 घंटे)',
+        'action.imm.1': 'SMS, रेडियो और स्थानीय मीडिया के माध्यम से सार्वजनिक सलाह जारी करें',
+        'action.imm.2': 'बुजुर्गों, बच्चों और दमा के रोगियों को घर में रहने की सलाह दें',
+        'action.imm.3': 'PHCs में नेबुलाइजर और इनहेलर की उपलब्धता सुनिश्चित करें',
+        'action.short.title': 'अल्पकालिक कार्रवाई (6-24 घंटे)',
+        'action.short.1': 'उच्च जोखिम वाले क्षेत्रों में मोबाइल स्वास्थ्य शिविर स्थापित करें',
+        'action.short.2': 'धूल और यातायात नियंत्रण के लिए नगर निकायों के साथ समन्वय करें',
+        'action.short.3': 'पीक आवर्स के दौरान श्वसन OPD स्टाफिंग बढ़ाएं',
+        'action.prevent.title': 'निवारक कार्रवाई (24-72 घंटे)',
+        'action.prevent.1': 'वार्ड स्तर पर प्रदूषण प्रवृत्तियों की समीक्षा करें',
+        'action.prevent.2': 'अस्पताल क्षमता वृद्धि के लिए आकस्मिक योजनाएं तैयार करें',
+        'action.prevent.3': 'निगरानी के लिए सामुदायिक स्वास्थ्य कार्यकर्ताओं को नियुक्त करें',
         'measures.short.3': 'श्वसन प्रश्नों के लिए टेलीमेडिसिन सहायता सक्रिय करें',
         'measures.medium': 'मध्यम अवधि योजना (24-72 घंटे):',
         'measures.medium.1': 'श्वसन मामलों के लिए अस्पताल प्रवेश दरों की निगरानी करें',
@@ -213,6 +293,33 @@ const translations = {
         'ben.map.title': 'श्वसन जोखिम मानचित्र',
         'ben.tips.title': '💡 आज के लिए स्वास्थ्य सुझाव',
         'ben.safe.zones.title': '🌳 आपके पास सुरक्षित क्षेत्र',
+        'ben.precautions.title': '⚠️ सावधानीपूर्ण उपाय',
+
+        // AQI Status Descriptions (Hindi)
+        'ben.aqi.good': 'अच्छा - वायु गुणवत्ता संतोषजनक है',
+        'ben.aqi.moderate': 'मध्यम - स्वीकार्य वायु गुणवत्ता',
+        'ben.aqi.unhealthy.sensitive': 'संवेदनशील समूहों के लिए अस्वास्थ्यकर',
+        'ben.aqi.unhealthy': 'अस्वास्थ्यकर - सभी को स्वास्थ्य प्रभाव महसूस हो सकते हैं',
+        'ben.aqi.very.unhealthy': 'बहुत अस्वास्थ्यकर - स्वास्थ्य सतर्कता जारी है',
+        'ben.aqi.hazardous': 'खतरनाक - आपातकालीन स्थिति',
+
+        // Precautionary Measures (Hindi)
+        'ben.precaution.stay.indoors': 'घर में रहें',
+        'ben.precaution.stay.indoors.desc': 'जितना संभव हो बाहर जाने से बचें',
+        'ben.precaution.use.masks': 'N95 मास्क का उपयोग करें',
+        'ben.precaution.use.masks.desc': 'बाहर जाते समय सही तरीके से फिट N95 या KN95 मास्क पहनें',
+        'ben.precaution.air.purifier': 'वायु शोधक का उपयोग करें',
+        'ben.precaution.air.purifier.desc': 'HEPA फिल्टर के साथ वायु शोधक चलाएं',
+        'ben.precaution.avoid.strenuous': 'तीव्र गतिविधि से बचें',
+        'ben.precaution.avoid.strenuous.desc': 'बाहरी व्यायाम, खेल और भारी शारीरिक काम स्थगित करें',
+        'ben.precaution.seal.windows': 'खिड़कियां बंद रखें',
+        'ben.precaution.seal.windows.desc': 'बाहरी वायु सेवन कम करने के लिए खिड़कियां और दरवाजे बंद करें',
+        'ben.precaution.vulnerable': 'संवेदनशील समूहों के लिए सतर्कता',
+        'ben.precaution.vulnerable.desc': 'बच्चों, बुजुर्गों और श्वसन रोग वाले लोगों को विशेष देखभाल करनी चाहिए',
+        'ben.precaution.water': 'हाइड्रेटेड रहें',
+        'ben.precaution.water.desc': 'अपनी श्वसन प्रणाली में मदद करने के लिए बहुत सारा पानी पिएं',
+        'ben.precaution.monitor': 'लक्षणों की निगरानी करें',
+        'ben.precaution.monitor.desc': 'खांसी, सीटी या सांस लेने में कठिनाई के संकेतों पर ध्यान दें',
 
         // Severity Labels
         'severity.good': 'सुरक्षित',
@@ -276,6 +383,12 @@ const translations = {
         'safezone.distance': 'दूरी',
         'safezone.km': 'किमी',
 
+        // Weather Info (Hindi)
+        'weather.temperature': 'तापमान',
+        'weather.humidity': 'नमी',
+        'weather.wind': 'हवा की गति',
+        'weather.uv': 'यूवी सूचकांक',
+
         // Modal
         'modal.zone': 'क्षेत्र',
         'modal.aqi': 'AQI',
@@ -285,6 +398,23 @@ const translations = {
         'modal.recommendation': 'सिफारिश',
         'modal.zone.type': 'क्षेत्र प्रकार',
         'modal.trend': 'प्रवृत्ति',
+
+        // Extra UI & labels
+        'system.tagline': 'वायु गुणवत्ता को स्वास्थ्य जोखिम और कार्रवाई में अनुवादित करना',
+        'ho.primary.title': 'आज की प्राथमिक कार्रवाई',
+        'ho.primary.none': 'तत्काल कोई कार्रवाई आवश्यक नहीं है।',
+        'ho.prediction.confidence': 'भविष्यवाणी आत्मविश्वास',
+        'data.confidence.high': 'उच्च',
+        'data.confidence.medium': 'मध्यम',
+        'data.confidence.low': 'कम',
+        'up.planning.note': 'योजना परिदृश्य (रीयल-टाइम नहीं)',
+        'up.assumptions': 'अनुमान: मॉडल नियम-आधारित और ऐतिहासिक अध्ययनों पर है',
+        'up.policy.relevance': 'नीति प्रासंगिकता: हरा जोनिंग, यातायात योजना, आदि',
+        'ben.personalized.label': 'व्यक्तिगत सलाह',
+        'ben.authority.trust': 'स्थानीय स्वास्थ्य विभाग द्वारा सत्यापित',
+        'role.confirmation.template': 'आप {role} डैशबोर्ड देख रहे हैं (डेमो मोड)',
+        'role.selected.template': 'जारी रखें के रूप में: {role}',
+
         'modal.planning.note': 'योजना नोट'
     }
 };
@@ -321,7 +451,21 @@ function updateTranslations(lang) {
             'ho-measures-title': 'ho.measures.title',
             'ho-generate-text': 'ho.generate.advisory',
             'ho-send-text': 'ho.send.alert',
+            'ho-primary-action-title': 'ho.primary.title',
+            'ho-prediction-confidence': 'ho.prediction.confidence',
             'logout-text-ho': 'common.logout',
+
+            // Footer / system tagline
+            'system-tagline': 'system.tagline',
+
+            // Urban planner helper texts
+            'up-planning-note': 'up.planning.note',
+            'up-assumptions': 'up.assumptions',
+            'up-policy-relevance': 'up.policy.relevance',
+
+            // Beneficiary labels
+            'ben-personalized-label': 'ben.personalized.label',
+            'ben-authority-trust': 'ben.authority.trust',
 
             // Urban Planner
             'up-dashboard-title': 'up.dashboard.title',
@@ -329,6 +473,21 @@ function updateTranslations(lang) {
             'up-zones-title': 'up.zones.title',
             'up-infrastructure-title': 'up.infrastructure.title',
             'logout-text-up': 'common.logout',
+
+            // Health Officer Actions
+            'ho-recommended-actions-title': 'ho.recommended.actions.title',
+            'action-immediate-title': 'action.immediate.title',
+            'action-imm-1': 'action.imm.1',
+            'action-imm-2': 'action.imm.2',
+            'action-imm-3': 'action.imm.3',
+            'action-short-title': 'action.short.title',
+            'action-short-1': 'action.short.1',
+            'action-short-2': 'action.short.2',
+            'action-short-3': 'action.short.3',
+            'action-prevent-title': 'action.prevent.title',
+            'action-prevent-1': 'action.prevent.1',
+            'action-prevent-2': 'action.prevent.2',
+            'action-prevent-3': 'action.prevent.3',
 
             // Beneficiary
             'ben-dashboard-title': 'ben.dashboard.title',
@@ -350,7 +509,12 @@ function updateTranslations(lang) {
             'ben-legend-safe': 'legend.safe',
             'ben-legend-careful': 'legend.careful',
             'ben-legend-avoid': 'legend.avoid',
-            'ben-legend-highrisk': 'legend.highrisk'
+            'ben-legend-highrisk': 'legend.highrisk',
+            'ben-precautions-title': 'ben.precautions.title',
+            'ben-forecast-title': 'ben.forecast.title',
+            'ben-tips-title': 'ben.tips.title',
+            'ben-map-title': 'ben.map.title',
+            'ben-safe-zones-title': 'ben.safe.zones.title'
         };
 
         if (translationMap[id]) {

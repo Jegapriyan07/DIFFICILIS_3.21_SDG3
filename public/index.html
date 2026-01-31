@@ -24,56 +24,60 @@
         <div id="login-page" class="page active">
             <div class="login-container">
                 <div class="login-card">
-                    <div class="login-header text-center">
-                        <div class="pin-icon-container">
-                            <div class="pin-icon">📍</div>
-                        </div>
-                        <h1 id="login-title" class="title-large">Air Quality Monitor</h1>
-                        <p id="login-subtitle" class="subtitle-text">Safeguarding public health, one breath at a time.
-                        </p>
+                    <!-- Header Section -->
+                    <div class="login-header">
+                        <h1 class="app-title">HEALTH PULSE AQI</h1>
+                        <p class="app-subtitle">SDG-3: Good Health & Well-Being</p>
                     </div>
 
-                    <div class="role-selection-container">
-                        <h3 class="role-select-title">Select Your Role</h3>
-
-                        <div class="role-cards">
-                            <div class="role-card" data-role="health_officer" onclick="selectRole('health_officer')">
-                                <div class="role-icon">★</div>
-                                <div class="role-info">
-                                    <h4>Health Officer</h4>
-                                    <p>Medical decision support</p>
-                                </div>
+                    <!-- Role Selection Section -->
+                    <div class="role-selection-section">
+                        <h2 class="role-selection-title">Select Your Role</h2>
+                        
+                        <div class="roles-grid">
+                            <!-- Health Officer Role -->
+                            <div class="role-option" data-role="health_officer" onclick="selectRole('health_officer')">
+                                <div class="role-option-icon">⭐</div>
+                                <h3 class="role-option-title">Health Officer</h3>
+                                <p class="role-option-description">Medical decision support</p>
+                                <div class="role-option-indicator"></div>
                             </div>
 
-                            <div class="role-card" data-role="urban_planner" onclick="selectRole('urban_planner')">
-                                <div class="role-icon">📊</div>
-                                <div class="role-info">
-                                    <h4>Urban Planner</h4>
-                                    <p>Infrastructure insights</p>
-                                </div>
+                            <!-- Urban Planner Role -->
+                            <div class="role-option" data-role="urban_planner" onclick="selectRole('urban_planner')">
+                                <div class="role-option-icon">🏛️</div>
+                                <h3 class="role-option-title">Urban Planner</h3>
+                                <p class="role-option-description">Infrastructure insights</p>
+                                <div class="role-option-indicator"></div>
                             </div>
 
-                            <div class="role-card" data-role="beneficiary" onclick="selectRole('beneficiary')">
-                                <div class="role-icon">👤</div>
-                                <div class="role-info">
-                                    <h4>Citizen</h4>
-                                    <p>Personal health guidance</p>
-                                </div>
+                            <!-- Citizen Role -->
+                            <div class="role-option" data-role="beneficiary" onclick="selectRole('beneficiary')">
+                                <div class="role-option-icon">👤</div>
+                                <h3 class="role-option-title">Citizen</h3>
+                                <p class="role-option-description">Personal health guidance</p>
+                                <div class="role-option-indicator"></div>
                             </div>
                         </div>
-
-                        <button id="login-button" class="btn-login-large" onclick="handleLogin()">
-                            Login
-                        </button>
                     </div>
 
-                    <!-- Hidden generic error div for compatibility -->
-                    <div id="login-error" class="error-message" style="display:none;"></div>
+                    <!-- CTA Button -->
+                    <button id="login-button" class="cta-button" onclick="handleLogin()" disabled>
+                        <span class="cta-button-text">Continue as Selected Role</span>
+                        <span class="cta-button-arrow">→</span>
+                    </button>
+
+                    <!-- Role Confirmation Display -->
+                    <div id="role-confirmation" class="role-confirmation"></div>
+
+                    <!-- Error Message -->
+                    <div id="login-error" class="error-message"></div>
                 </div>
 
-                <button id="lang-toggle-login" class="lang-toggle">
+                <!-- Language Toggle -->
+                <button id="lang-toggle-login" class="language-toggle">
                     <span class="lang-icon">🌐</span>
-                    <span id="lang-text-login">EN</span>
+                    <span class="lang-code" id="lang-text-login">EN</span>
                 </button>
             </div>
         </div>
@@ -81,12 +85,29 @@
         <!-- Loading Screen -->
         <div id="loading-page" class="page">
             <div class="loading-container">
-                <div class="breathing-animation">
-                    <div class="lung-icon">🫁</div>
+                <!-- Enhanced Loading Animation -->
+                <div class="enhanced-loader">
+                    <div class="loader-outer-ring"></div>
+                    <div class="loader-middle-ring"></div>
+                    <div class="loader-inner-ring"></div>
+                    <div class="loader-center">
+                        <div class="pulse-dot"></div>
+                    </div>
                 </div>
+                
                 <h2 id="loading-text" class="loading-text">Analyzing respiratory risk data...</h2>
-                <div class="progress-bar">
-                    <div class="progress-fill"></div>
+                
+                <!-- Animated progress bar -->
+                <div class="enhanced-progress">
+                    <div class="progress-bar-container">
+                        <div class="progress-fill"></div>
+                    </div>
+                    <div class="progress-dots">
+                        <span class="dot"></span>
+                        <span class="dot"></span>
+                        <span class="dot"></span>
+                        <span class="dot"></span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -95,7 +116,6 @@
         <div id="health-officer-dashboard" class="page dashboard">
             <header class="dashboard-header">
                 <div class="header-left">
-                    <div class="logo-small">🫁</div>
                     <h1 id="ho-dashboard-title">Health Officer Dashboard</h1>
                 </div>
                 <div class="header-right">
@@ -140,13 +160,77 @@
                             </div>
                         </div>
 
-                        <!-- Medical Measures Box (Under Heatmap) -->
-                        <div class="card medical-measures-card">
+                        <!-- Recommended Actions Section -->
+                        <div class="card recommended-actions-card">
                             <div class="card-header">
-                                <h3 id="ho-measures-title">🏥 Recommended Medical Measures</h3>
+                                <h3 id="ho-recommended-actions-title">📋 RECOMMENDED ACTIONS</h3>
                             </div>
-                            <div class="medical-measures" id="ho-medical-measures">
-                                <!-- Populated by JS -->
+                            <div class="actions-container">
+                                <!-- Immediate Actions -->
+                                <div class="action-group">
+                                    <div class="action-header action-immediate">
+                                        <span class="action-icon">⏱️</span>
+                                        <span class="action-period" id="action-immediate-title">Immediate Actions (0-6 Hours)</span>
+                                    </div>
+                                    <div class="action-list">
+                                        <div class="action-item">
+                                            <span class="action-number">1</span>
+                                            <span class="action-text" id="action-imm-1">Issue public advisories via SMS, radio, and local media</span>
+                                        </div>
+                                        <div class="action-item">
+                                            <span class="action-number">2</span>
+                                            <span class="action-text" id="action-imm-2">Advise elderly, children, and asthma patients to <strong>stay indoors</strong></span>
+                                        </div>
+                                        <div class="action-item">
+                                            <span class="action-number">3</span>
+                                            <span class="action-text" id="action-imm-3">Ensure availability of <strong>nebulizers</strong> and <strong>inhalers</strong> at PHCs</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Short-Term Actions -->
+                                <div class="action-group">
+                                    <div class="action-header action-short-term">
+                                        <span class="action-icon">⏱️</span>
+                                        <span class="action-period" id="action-short-title">Short-Term Actions (6-24 Hours)</span>
+                                    </div>
+                                    <div class="action-list">
+                                        <div class="action-item">
+                                            <span class="action-number">1</span>
+                                            <span class="action-text" id="action-short-1">Deploy <strong>mobile health</strong> camps in high-risk zones</span>
+                                        </div>
+                                        <div class="action-item">
+                                            <span class="action-number">2</span>
+                                            <span class="action-text" id="action-short-2">Coordinate with municipal bodies for dust and traffic control</span>
+                                        </div>
+                                        <div class="action-item">
+                                            <span class="action-number">3</span>
+                                            <span class="action-text" id="action-short-3">Increase respiratory OPD <strong>staffing</strong> during peak hours</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Preventive Actions -->
+                                <div class="action-group">
+                                    <div class="action-header action-preventive">
+                                        <span class="action-icon">⏱️</span>
+                                        <span class="action-period" id="action-prevent-title">Preventive Actions (24-72 Hours)</span>
+                                    </div>
+                                    <div class="action-list">
+                                        <div class="action-item">
+                                            <span class="action-number">1</span>
+                                            <span class="action-text" id="action-prevent-1">Review ward-level pollution trends</span>
+                                        </div>
+                                        <div class="action-item">
+                                            <span class="action-number">2</span>
+                                            <span class="action-text" id="action-prevent-2">Prepare contingency plans for hospital capacity surge</span>
+                                        </div>
+                                        <div class="action-item">
+                                            <span class="action-number">3</span>
+                                            <span class="action-text">Engage community health workers for surveillance</span>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -160,7 +244,8 @@
                             </div>
                             <div class="severity-summary" id="ho-severity-summary">
                                 <div class="severity-main" id="ho-severity-main">
-                                    <div class="severity-badge severe">SEVERE</div>
+                                    <div class="severity-badge severe" id="ho-severity-badge">SEVERE</div>
+                                    <div class="prediction-confidence" id="ho-prediction-confidence">Prediction confidence: --</div>
                                     <p id="ho-zones-affected">-- zones affected</p>
                                 </div>
                                 <div class="severity-breakdown" id="ho-severity-breakdown">
@@ -179,11 +264,17 @@
                             </div>
                         </div>
 
-                        <!-- Action Buttons Card -->
-                        <div class="card action-buttons-card">
+                        <!-- Primary Action Box with Alert Button -->
+                        <div class="card primary-action-card">
+                            <div class="card-header">
+                                <h3 id="ho-primary-action-title">TODAY'S PRIMARY ACTION</h3>
+                            </div>
+                            <div class="primary-action-content" id="ho-primary-action" style="padding: 16px; font-size: 14px; line-height: 1.6; color: #1E293B;">
+                                🚨 Issue health advisories via SMS, radio, and local media to all beneficiaries in high-risk zones
+                            </div>
                             <div class="card-actions">
-                                <button class="btn-secondary" id="ho-send-alert">
-                                    <span id="ho-send-text">Send Alert to Beneficiaries</span>
+                                <button class="btn-primary btn-send-alert" id="ho-send-alert">
+                                    <span id="ho-send-text">Send Notification</span>
                                 </button>
                             </div>
                         </div>
@@ -196,7 +287,6 @@
         <div id="urban-planner-dashboard" class="page dashboard">
             <header class="dashboard-header">
                 <div class="header-left">
-                    <div class="logo-small">🫁</div>
                     <h1 id="up-dashboard-title">Urban Planner Dashboard</h1>
                 </div>
                 <div class="header-right">
@@ -211,9 +301,9 @@
             </header>
 
             <div class="dashboard-content">
-                <div class="dashboard-grid">
+                <div class="dashboard-grid-urban">
                     <!-- Heatmap Section -->
-                    <div class="card card-large">
+                    <div class="card card-heatmap">
                         <div class="card-header">
                             <h3 id="up-heatmap-title">Respiratory Severity Heatmap</h3>
                             <div class="update-time" id="up-update-time">Updated: --</div>
@@ -240,22 +330,41 @@
                     </div>
 
                     <!-- Zone-Based Risk Patterns -->
-                    <div class="card">
+                    <div class="card zones-card">
                         <div class="card-header">
-                            <h3 id="up-zones-title">High-Risk Zones</h3>
+                            <h3 id="up-zones-title">🚨 High-Risk Zones (AQI > 100)</h3>
                         </div>
                         <div class="zone-list" id="up-zone-list">
                             <!-- Populated by JS -->
                         </div>
                     </div>
 
-                    <!-- Infrastructure Impact -->
-                    <div class="card card-full">
+                    <!-- Infrastructure Intervention Simulator -->
+                    <div class="card infrastructure-card">
                         <div class="card-header">
                             <h3 id="up-infrastructure-title">🏗️ Infrastructure Intervention Simulator</h3>
                         </div>
                         <div class="simulator-content" id="up-simulator">
-                            <!-- Populated by JS -->
+                            <div class="simulator-note" id="up-planning-note">Planning Scenario (Not Real-Time)</div>
+                            <div class="simulator-info">
+                                <div class="simulator-assumptions" id="up-assumptions">Assumptions: model is rule-based and uses historical studies.</div>
+                                <div class="policy-relevance" id="up-policy-relevance">Policy Relevance: Suggested for green zoning, traffic planning, and industrial controls.</div>
+                            </div>
+                            <div class="simulator-controls">
+                                <div class="control-group">
+                                    <label for="select-intervention" class="control-label">Select Intervention:</label>
+                                    <select id="select-intervention">
+                                        <option>Green Belt Expansion</option>
+                                    </select>
+                                </div>
+                                <div class="control-group">
+                                    <label for="select-target-zone" class="control-label">Target Zone:</label>
+                                    <select id="select-target-zone">
+                                        <option>Dharampeth (AQI: 145)</option>
+                                    </select>
+                                </div>
+                                <button class="btn-run-simulation">Run Simulation</button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -266,7 +375,6 @@
         <div id="beneficiary-dashboard" class="page dashboard">
             <header class="dashboard-header">
                 <div class="header-left">
-                    <div class="logo-small">🫁</div>
                     <h1 id="ben-dashboard-title">Air Quality Status</h1>
                 </div>
                 <div class="header-right">
@@ -281,25 +389,52 @@
             </header>
 
             <div class="dashboard-content beneficiary-content">
-                <!-- My Location Status -->
-                <div class="card card-status">
-                    <div class="status-content" id="ben-status-content">
+                <!-- Live AQI Status Card -->
+                <div class="card aqi-status-card">
+                    <div class="aqi-header">
+                        <div class="aqi-live-indicator">
+                            <span class="live-dot"></span>
+                            <span class="live-text">Live AQI</span>
+                        </div>
+                    </div>
+                    <div class="aqi-main-content" id="ben-status-content">
                         <!-- Populated by JS -->
                     </div>
                 </div>
 
-                <!-- 24-Hour Forecast -->
-                <div class="card">
+                <!-- Precautionary Measures Card -->
+                <div class="card precautions-card">
                     <div class="card-header">
-                        <h3 id="ben-forecast-title">What to Expect Today</h3>
+                        <h3 id="ben-precautions-title">⚠️ PRECAUTIONARY MEASURES</h3>
                     </div>
-                    <div class="forecast-timeline" id="ben-forecast">
+                    <div class="precautions-content" id="ben-precautions">
                         <!-- Populated by JS -->
                     </div>
                 </div>
 
+                <!-- What to Expect Today & Health Tips -->
                 <div class="dashboard-grid-2col">
-                    <!-- Simple Map -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 id="ben-forecast-title">What to Expect Today</h3>
+                        </div>
+                        <div class="forecast-timeline" id="ben-forecast">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 id="ben-tips-title">💡 Health Tips for Today</h3>
+                        </div>
+                        <div class="health-tips" id="ben-health-tips">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Respiratory Risk Map & Safe Zones -->
+                <div class="dashboard-grid-2col">
                     <div class="card">
                         <div class="card-header">
                             <h3 id="ben-map-title">Respiratory Risk Map</h3>
@@ -325,24 +460,13 @@
                         </div>
                     </div>
 
-                    <!-- Health Tips -->
                     <div class="card">
                         <div class="card-header">
-                            <h3 id="ben-tips-title">💡 Health Tips for Today</h3>
+                            <h3 id="ben-safe-zones-title">🌳 Safer Areas Near You</h3>
                         </div>
-                        <div class="health-tips" id="ben-health-tips">
+                        <div class="safe-zones-list" id="ben-safe-zones">
                             <!-- Populated by JS -->
                         </div>
-                    </div>
-                </div>
-
-                <!-- Nearby Safe Zones -->
-                <div class="card">
-                    <div class="card-header">
-                        <h3 id="ben-safe-zones-title">🌳 Safer Areas Near You</h3>
-                    </div>
-                    <div class="safe-zones-list" id="ben-safe-zones">
-                        <!-- Populated by JS -->
                     </div>
                 </div>
             </div>
@@ -361,6 +485,10 @@
             </div>
         </div>
     </div>
+
+    <footer class="system-footer">
+        <div class="system-tagline" id="system-tagline">Translating air quality into health risk and action.</div>
+    </footer>
 
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>

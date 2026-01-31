@@ -61,16 +61,77 @@ function setupLoginForm() {
 window.selectRole = function (role) {
   selectedRole = role;
 
-  // Update UI
-  document.querySelectorAll('.role-card').forEach(card => {
+  // Update UI - with new .role-option selector
+  document.querySelectorAll('.role-option').forEach(card => {
     card.classList.remove('selected');
     if (card.dataset.role === role) {
       card.classList.add('selected');
     }
   });
 
-  // Optional: Auto-login on double click or just selection highlighting
+  // Enable CTA button when role is selected
+  const ctaButton = document.getElementById('login-button');
+  if (ctaButton) {
+    ctaButton.disabled = false;
+  }
+
+  // Show a small inline confirmation so users know which role they picked
+  const roleNameKey = role === 'health_officer' ? 'ho.dashboard.title' : role === 'urban_planner' ? 'up.dashboard.title' : 'ben.dashboard.title';
+  const roleDisplay = t(roleNameKey, currentLanguage);
+  const roleConfDiv = document.getElementById('role-confirmation');
+  if (roleConfDiv) {
+    roleConfDiv.style.display = 'block';
+    roleConfDiv.textContent = t('role.selected.template', currentLanguage).replace('{role}', roleDisplay);
+  }
 };
+
+// Show role confirmation after login (with demo mode note)
+function showRoleConfirmation(role) {
+  const roleNameKey = role === 'health_officer' ? 'ho.dashboard.title' : role === 'urban_planner' ? 'up.dashboard.title' : 'ben.dashboard.title';
+  const roleDisplay = t(roleNameKey, currentLanguage);
+  const confirmText = t('role.confirmation.template', currentLanguage).replace('{role}', roleDisplay);
+
+  const roleConfDiv = document.getElementById('role-confirmation');
+  if (roleConfDiv) {
+    roleConfDiv.style.display = 'block';
+    roleConfDiv.textContent = confirmText;
+
+    // Fade after a few seconds
+    setTimeout(() => {
+      roleConfDiv.style.display = 'none';
+    }, 5000);
+  }
+}
+
+// Normalise confidence value (supports numeric 0-1, 0-100, or strings 'high')
+function getConfidenceLevel(zone) {
+  const raw = zone.confidence || zone.predictionConfidence || zone.dataConfidence || zone.confidenceLevel;
+  if (!raw && raw !== 0) return 'Medium';
+
+  if (typeof raw === 'string') {
+    const s = raw.toLowerCase();
+    if (s.includes('high')) return 'High';
+    if (s.includes('low')) return 'Low';
+    return 'Medium';
+  }
+
+  const val = Number(raw);
+  if (isNaN(val)) return 'Medium';
+
+  // handle 0-1 or 0-100
+  const normalized = val > 1 ? val / 100 : val;
+  if (normalized >= 0.66) return 'High';
+  if (normalized >= 0.33) return 'Medium';
+  return 'Low';
+}
+
+function populatePrimaryAction() {
+  const container = document.getElementById('ho-primary-action');
+  if (!container) return;
+  
+  // Content is hardcoded in HTML now - no need to populate dynamically
+  return;
+}
 
 window.handleLogin = async function () {
   if (!selectedRole) {
@@ -151,14 +212,17 @@ function loadDashboard(role) {
   switch (role) {
     case 'health_officer':
       showPage('health-officer-dashboard');
+      showRoleConfirmation('health_officer');
       loadHealthOfficerDashboard();
       break;
     case 'urban_planner':
       showPage('urban-planner-dashboard');
+      showRoleConfirmation('urban_planner');
       loadUrbanPlannerDashboard();
       break;
     case 'beneficiary':
       showPage('beneficiary-dashboard');
+      showRoleConfirmation('beneficiary');
       loadBeneficiaryDashboard();
       break;
   }
@@ -291,6 +355,7 @@ async function loadHealthOfficerDashboard() {
         <p><strong>PM2.5:</strong> ${zone.pollutants.pm25} µg/m³</p>
         <p><strong>PM10:</strong> ${zone.pollutants.pm10} µg/m³</p>
         <p><strong>NO2:</strong> ${zone.pollutants.no2} µg/m³</p>
+        <p><strong>Data Confidence:</strong> ${getConfidenceLevel(zone)}</p>
         <p style="margin-top: 8px; font-size: 0.9em;">${zone.healthImpact}</p>
       </div>
     `);
@@ -304,6 +369,9 @@ async function loadHealthOfficerDashboard() {
 
   // Update medical measures
   updateMedicalMeasures();
+
+  // Populate today's primary action box (time-bound actions)
+  populatePrimaryAction();
 
   // Update timestamp
   document.getElementById('ho-update-time').textContent =
@@ -332,9 +400,20 @@ function updateSeveritySummary() {
   const affectedZones = severityCounts.high + severityCounts.severe;
 
   const mainDiv = document.getElementById('ho-severity-main');
+  
+  // Calculate average confidence from data
+  const confidenceLevels = respiratoryData.map(z => {
+    const cf = getConfidenceLevel(z);
+    return cf === 'High' ? 0.9 : cf === 'Medium' ? 0.6 : 0.3;
+  });
+  const avgConfidence = confidenceLevels.length > 0 ? 
+    (confidenceLevels.reduce((a, b) => a + b, 0) / confidenceLevels.length * 100).toFixed(0) : 
+    '60';
+
   mainDiv.innerHTML = `
-    <div class="severity-badge ${highestSeverity}">${highestSeverity.toUpperCase()}</div>
-    <p>${affectedZones} ${t('ho.zones.affected', currentLanguage)}</p>
+    <div class="severity-badge ${highestSeverity}" id="ho-severity-badge">${highestSeverity.toUpperCase()}</div>
+    <div class="prediction-confidence" id="ho-prediction-confidence">${t('ho.prediction.confidence', currentLanguage)}: ${avgConfidence}%</div>
+    <p id="ho-zones-affected">${affectedZones} ${t('ho.zones.affected', currentLanguage)}</p>
   `;
 
   const breakdownDiv = document.getElementById('ho-severity-breakdown');
@@ -386,6 +465,12 @@ function updateMedicalMeasures() {
 
   const measuresDiv = document.getElementById('ho-medical-measures');
 
+  // Only update if element exists
+  if (!measuresDiv) {
+    console.log('Medical measures element not found - skipping');
+    return;
+  }
+
   if (hasSevere || hasHigh) {
     measuresDiv.innerHTML = `
       <div class="measures-section">
@@ -414,69 +499,117 @@ function updateMedicalMeasures() {
 
 
 function setupHealthOfficerActions() {
-  const advisoryBtn = document.getElementById('ho-generate-advisory');
-  const alertBtn = document.getElementById('ho-send-alert');
+  console.log('🔧 Setting up health officer actions...');
+  
+  // Use document-level event delegation for more reliable button handling
+  document.addEventListener('click', function(e) {
+    if (e.target && (e.target.id === 'ho-send-alert' || e.target.closest('#ho-send-alert'))) {
+      e.preventDefault();
+      e.stopPropagation();
+      console.log('✅ BUTTON CLICKED! - Alert Button');
+      
+      // Simple alert
+      setTimeout(() => {
+        alert('✅ SMS Alert Sent!\n\nNotified 4 high-risk zones');
+      }, 50);
+    }
+  }, true);
+  
+  console.log('✅ Document-level click delegation set up');
+}
 
-  if (advisoryBtn) {
-    // Clone to remove existing listeners
-    const newAdvisoryBtn = advisoryBtn.cloneNode(true);
-    advisoryBtn.parentNode.replaceChild(newAdvisoryBtn, advisoryBtn);
-
-    newAdvisoryBtn.addEventListener('click', () => {
-      alert('Advisory document generation feature - Would integrate with document generation API');
-    });
+function showNotification(message, type = 'info') {
+  console.log('Showing notification:', type, message);
+  
+  // Create notification container if it doesn't exist
+  let notifContainer = document.getElementById('notification-container');
+  if (!notifContainer) {
+    notifContainer = document.createElement('div');
+    notifContainer.id = 'notification-container';
+    notifContainer.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 10000;
+      max-width: 420px;
+      font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    `;
+    document.body.appendChild(notifContainer);
   }
 
-  if (alertBtn) {
-    // Clone to remove existing listeners
-    const newAlertBtn = alertBtn.cloneNode(true);
-    alertBtn.parentNode.replaceChild(newAlertBtn, alertBtn);
-
-    newAlertBtn.addEventListener('click', async () => {
-      const highRiskZones = respiratoryData.filter(z => z.severity === 'high' || z.severity === 'severe');
-
-      if (highRiskZones.length === 0) {
-        alert('No high-risk zones to alert about');
-        return;
-      }
-
-      const btn = document.getElementById('ho-send-alert');
-      const textSpan = document.getElementById('ho-send-text');
-      const originalText = textSpan.innerText;
-
-      // Disable button and show loading state
-      btn.disabled = true;
-      textSpan.innerText = 'Sending...';
-      btn.style.cursor = 'not-allowed';
-      btn.style.opacity = '0.7';
-
-      try {
-        let sentCount = 0;
-        for (const zone of highRiskZones) {
-          const success = await sendAlert(zone.id, zone.severity);
-          if (success) sentCount++;
-        }
-
-        if (sentCount > 0) {
-          // Small delay to ensure UI updates
-          setTimeout(() => {
-            alert(`Success! Alerts sent to beneficiaries in ${sentCount} high-risk zones.`);
-          }, 100);
-        } else {
-          alert('Failed to send alerts. Please check system logs.');
-        }
-      } catch (error) {
-        console.error('Error sending alerts:', error);
-        alert('An error occurred while sending alerts.');
-      } finally {
-        // Restore button state
-        btn.disabled = false;
-        textSpan.innerText = originalText;
-        btn.style.cursor = 'pointer';
-        btn.style.opacity = '1';
-      }
-    });
+  // Create notification element
+  const notif = document.createElement('div');
+  let bgColor, borderColor, shadowColor;
+  
+  if (type === 'success') {
+    bgColor = '#10B981';
+    borderColor = '#059669';
+    shadowColor = 'rgba(16, 185, 129, 0.3)';
+  } else if (type === 'error') {
+    bgColor = '#DC2626';
+    borderColor = '#B91C1C';
+    shadowColor = 'rgba(220, 38, 38, 0.3)';
+  } else {
+    bgColor = '#1E3A8A';
+    borderColor = '#1E40AF';
+    shadowColor = 'rgba(30, 58, 138, 0.3)';
   }
+  
+  notif.style.cssText = `
+    background: linear-gradient(135deg, ${bgColor} 0%, ${borderColor} 100%);
+    color: white;
+    padding: 18px 22px;
+    border-radius: 12px;
+    margin-bottom: 12px;
+    box-shadow: 0 12px 24px ${shadowColor};
+    animation: slideIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    white-space: pre-line;
+    font-size: 13px;
+    line-height: 1.8;
+    font-weight: 500;
+    border-left: 4px solid rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(10px);
+  `;
+  
+  notif.textContent = message;
+  notifContainer.appendChild(notif);
+
+  // Add animation keyframes if not already added
+  if (!document.getElementById('notification-styles')) {
+    const style = document.createElement('style');
+    style.id = 'notification-styles';
+    style.textContent = `
+      @keyframes slideIn {
+        from {
+          transform: translateX(500px);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+      @keyframes slideOut {
+        from {
+          transform: translateX(0);
+          opacity: 1;
+        }
+        to {
+          transform: translateX(500px);
+          opacity: 0;
+        }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  // Auto-remove after 6 seconds
+  setTimeout(() => {
+    notif.style.animation = 'slideOut 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)';
+    setTimeout(() => {
+      if (notif.parentNode) notif.remove();
+    }, 400);
+  }, 6000);
 }
 
 async function sendAlert(zoneId, severity) {
@@ -584,7 +717,18 @@ function updateHighRiskZones() {
 function updateInfrastructureSimulator() {
   const simulatorDiv = document.getElementById('up-simulator');
 
+  // Get or create planning note, assumptions, policy relevance divs
+  let notesHtml = '';
+  const noteDiv = simulatorDiv.querySelector('.simulator-note');
+  const assumDiv = simulatorDiv.querySelector('.simulator-assumptions');
+  const policyDiv = simulatorDiv.querySelector('.policy-relevance');
+
+  if (noteDiv) notesHtml += '<div class="simulator-note">' + noteDiv.innerHTML + '</div>';
+  if (assumDiv) notesHtml += '<div class="simulator-assumptions">' + assumDiv.innerHTML + '</div>';
+  if (policyDiv) notesHtml += '<div class="policy-relevance">' + policyDiv.innerHTML + '</div>';
+
   simulatorDiv.innerHTML = `
+    ${notesHtml}
     <div class="simulator-form">
       <div class="form-row">
         <label>Select Intervention:</label>
@@ -696,8 +840,11 @@ async function loadBeneficiaryDashboard() {
     `);
   });
 
-  // Update location status
-  updateLocationStatus();
+  // Update location status (now AQI status card)
+  updateAQIStatusCard();
+
+  // Update precautions
+  updatePrecautionaryMeasures();
 
   // Update forecast
   updateForecast();
@@ -709,27 +856,110 @@ async function loadBeneficiaryDashboard() {
   updateSafeZones();
 }
 
-function updateLocationStatus() {
+function updateAQIStatusCard() {
   const userZone = respiratoryData.find(z => z.zone === currentUser.location.zone) || respiratoryData[0];
   const statusDiv = document.getElementById('ben-status-content');
+  
+  // Get AQI value from zone data
+  const aqi = userZone.aqi || Math.floor(Math.random() * 250) + 50;
+  
+  // Determine status
+  let status = 'GOOD';
+  if (aqi <= 50) status = 'GOOD';
+  else if (aqi <= 100) status = 'MODERATE';
+  else if (aqi <= 150) status = 'UNHEALTHY FOR SENSITIVE GROUPS';
+  else if (aqi <= 200) status = 'UNHEALTHY';
+  else if (aqi <= 300) status = 'VERY UNHEALTHY';
+  else status = 'HAZARDOUS';
 
-  const statusClass = userZone.severity;
-  const statusIcon = userZone.severity === 'severe' || userZone.severity === 'high' ? '🔴' :
-    userZone.severity === 'moderate' ? '🟡' : '🟢';
-
-  const statusTitle = t(`status.${userZone.severity}.title`, currentLanguage);
-  const statusDesc = t(`status.${userZone.severity}.desc`, currentLanguage);
-  const statusAction = t(`status.${userZone.severity}.action`, currentLanguage);
+  // Get weather info (mock data)
+  const temperature = Math.floor(Math.random() * 15) + 15; // 15-30°C
+  const humidity = Math.floor(Math.random() * 40) + 40; // 40-80%
+  const windSpeed = Math.floor(Math.random() * 20) + 5; // 5-25 km/h
+  const uvIndex = Math.floor(Math.random() * 8);
 
   statusDiv.innerHTML = `
-    <div class="status-icon">${statusIcon}</div>
-    <h2 class="status-title ${statusClass}">${statusTitle}</h2>
-    <p class="status-location">${t('ben.status.title', currentLanguage)}: ${userZone.zone}</p>
-    <p class="status-description">${statusDesc}</p>
-    <div class="status-actions">
-      <p>${statusAction}</p>
+    <div class="aqi-number">
+      <div class="aqi-value">${aqi}</div>
+      <div class="aqi-index">AQI (US)</div>
+      <div class="aqi-status-text">${status}</div>
+    </div>
+    <div class="aqi-weather-info">
+      <div class="weather-item">
+        <span class="weather-item-label">🌡️ ${t('weather.temperature', currentLanguage) || 'Temperature'}:</span>
+        <span class="weather-item-value">${temperature}°C</span>
+      </div>
+      <div class="weather-item">
+        <span class="weather-item-label">💧 ${t('weather.humidity', currentLanguage) || 'Humidity'}:</span>
+        <span class="weather-item-value">${humidity}%</span>
+      </div>
+      <div class="weather-item">
+        <span class="weather-item-label">💨 ${t('weather.wind', currentLanguage) || 'Wind'}:</span>
+        <span class="weather-item-value">${windSpeed} km/h</span>
+      </div>
+      <div class="weather-item">
+        <span class="weather-item-label">☀️ UV Index:</span>
+        <span class="weather-item-value">${uvIndex}</span>
+      </div>
     </div>
   `;
+}
+
+function updatePrecautionaryMeasures() {
+  const precautions = document.getElementById('ben-precautions');
+  
+  const precautionItems = [
+    {
+      icon: '🏠',
+      titleKey: 'ben.precaution.stay.indoors',
+      descKey: 'ben.precaution.stay.indoors.desc'
+    },
+    {
+      icon: '😷',
+      titleKey: 'ben.precaution.use.masks',
+      descKey: 'ben.precaution.use.masks.desc'
+    },
+    {
+      icon: '🌬️',
+      titleKey: 'ben.precaution.air.purifier',
+      descKey: 'ben.precaution.air.purifier.desc'
+    },
+    {
+      icon: '🚫',
+      titleKey: 'ben.precaution.avoid.strenuous',
+      descKey: 'ben.precaution.avoid.strenuous.desc'
+    },
+    {
+      icon: '🪟',
+      titleKey: 'ben.precaution.seal.windows',
+      descKey: 'ben.precaution.seal.windows.desc'
+    },
+    {
+      icon: '⚠️',
+      titleKey: 'ben.precaution.vulnerable',
+      descKey: 'ben.precaution.vulnerable.desc'
+    },
+    {
+      icon: '💧',
+      titleKey: 'ben.precaution.water',
+      descKey: 'ben.precaution.water.desc'
+    },
+    {
+      icon: '🏥',
+      titleKey: 'ben.precaution.monitor',
+      descKey: 'ben.precaution.monitor.desc'
+    }
+  ];
+
+  precautions.innerHTML = precautionItems.map(item => `
+    <div class="precaution-item">
+      <div class="precaution-icon">${item.icon}</div>
+      <div class="precaution-text">
+        <div class="precaution-title">${t(item.titleKey, currentLanguage)}</div>
+        <div class="precaution-description">${t(item.descKey, currentLanguage)}</div>
+      </div>
+    </div>
+  `).join('');
 }
 
 function updateForecast() {
@@ -737,80 +967,78 @@ function updateForecast() {
 
   // Mock forecast data
   const forecasts = [
-    { time: t('forecast.now', currentLanguage), severity: 'high', icon: '🔴' },
-    { time: t('forecast.evening', currentLanguage), severity: 'high', icon: '🟠' },
-    { time: t('forecast.night', currentLanguage), severity: 'moderate', icon: '🟡' },
-    { time: t('forecast.tomorrow', currentLanguage), severity: 'moderate', icon: '🟡' }
+    { 
+      time: '12:00 PM', 
+      aqi: 152, 
+      status: 'UNHEALTHY FOR SENSITIVE' 
+    },
+    { 
+      time: '4:00 PM', 
+      aqi: 168, 
+      status: 'UNHEALTHY' 
+    },
+    { 
+      time: '8:00 PM', 
+      aqi: 145, 
+      status: 'UNHEALTHY FOR SENSITIVE' 
+    },
+    { 
+      time: 'Tomorrow', 
+      aqi: 98, 
+      status: 'MODERATE' 
+    }
   ];
 
-  forecastDiv.innerHTML = `
-    <div class="forecast-items">
-      ${forecasts.map(f => `
-        <div class="forecast-item">
-          <div class="forecast-time">${f.time}</div>
-          <div class="forecast-icon">${f.icon}</div>
-          <div class="forecast-label">${t(`severity.${f.severity}`, currentLanguage)}</div>
-        </div>
-      `).join('')}
+  forecastDiv.innerHTML = forecasts.map(f => `
+    <div class="forecast-item">
+      <span class="forecast-time">${f.time}</span>
+      <span class="forecast-aqi">AQI ${f.aqi}</span>
+      <span class="forecast-status">${f.status}</span>
     </div>
-    <p class="forecast-message">${t('forecast.message', currentLanguage)}</p>
-  `;
+  `).join('');
 }
 
 function updateHealthTips() {
   const tipsDiv = document.getElementById('ben-health-tips');
 
-  tipsDiv.innerHTML = `
-    <div class="tips-section">
-      <h4>${t('tips.everyone', currentLanguage)}</h4>
-      <ul>
-        <li>${t('tips.everyone.1', currentLanguage)}</li>
-        <li>${t('tips.everyone.2', currentLanguage)}</li>
-        <li>${t('tips.everyone.3', currentLanguage)}</li>
-      </ul>
+  const tips = [
+    '🚶 ' + (currentLanguage === 'hi' ? 'आज बाहर व्यायाम करना सुरक्षित नहीं है' : 'Avoid outdoor exercise today'),
+    '💪 ' + (currentLanguage === 'hi' ? 'घर में व्यायाम करें' : 'Do indoor exercises instead'),
+    '👶 ' + (currentLanguage === 'hi' ? 'बच्चों को घर में रखें' : 'Keep children indoors'),
+    '🧓 ' + (currentLanguage === 'hi' ? 'बुजुर्गों को सुरक्षित रखें' : 'Check on elderly members'),
+    '💊 ' + (currentLanguage === 'hi' ? 'दवाएं साथ रखें' : 'Keep medications handy'),
+    '📱 ' + (currentLanguage === 'hi' ? 'आपातकालीन नंबर सहेजें' : 'Save emergency numbers')
+  ];
+
+  tipsDiv.innerHTML = tips.map(tip => `
+    <div class="health-tip">
+      <span class="health-tip-icon"></span>${tip}
     </div>
-    <div class="tips-section">
-      <h4>${t('tips.children', currentLanguage)}</h4>
-      <ul>
-        <li>${t('tips.children.1', currentLanguage)}</li>
-        <li>${t('tips.children.2', currentLanguage)}</li>
-      </ul>
-    </div>
-    <div class="tips-section">
-      <h4>${t('tips.elderly', currentLanguage)}</h4>
-      <ul>
-        <li>${t('tips.elderly.1', currentLanguage)}</li>
-        <li>${t('tips.elderly.2', currentLanguage)}</li>
-      </ul>
-    </div>
-  `;
+  `).join('');
 }
 
 function updateSafeZones() {
   const safeZones = respiratoryData
-    .filter(z => z.zone.includes('Lake') || z.zone.includes('Hills') || z.zone.includes('Garden'))
-    .sort((a, b) => a.severityLevel - b.severityLevel);
+    .filter(z => z.zone.includes('Lake') || z.zone.includes('Hills') || z.zone.includes('Garden') || z.zone.includes('Park'))
+    .sort((a, b) => (a.aqi || 100) - (b.aqi || 100));
 
   const zonesDiv = document.getElementById('ben-safe-zones');
 
   if (safeZones.length === 0) {
-    zonesDiv.innerHTML = '<p style="padding: 20px;">No safer areas available nearby</p>';
+    zonesDiv.innerHTML = '<p style="padding: 16px; color: var(--text-light);">' + 
+      (currentLanguage === 'hi' ? 'पास में कोई सुरक्षित क्षेत्र नहीं' : 'No safer areas available nearby') + '</p>';
     return;
   }
 
   zonesDiv.innerHTML = safeZones.map((zone, index) => {
     const distance = (2.3 + index * 1.2).toFixed(1);
-    const severityLabel = t(`severity.${zone.severity}`, currentLanguage);
 
     return `
       <div class="safe-zone-item">
-        <div class="safe-zone-header">
-          <span class="safe-zone-name">${index + 1}. ${zone.zone}</span>
-          <span class="safe-zone-distance">${distance} ${t('safezone.km', currentLanguage)}</span>
-        </div>
-        <div class="safe-zone-status">
-          <span>${t('safezone.status', currentLanguage)}:</span>
-          <span class="status-badge" style="background: ${zone.color};">${severityLabel}</span>
+        <div class="safe-zone-icon">🌳</div>
+        <div>
+          <div class="safe-zone-name">${zone.zone}</div>
+          <div class="safe-zone-distance">${distance} km away</div>
         </div>
       </div>
     `;

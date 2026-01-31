@@ -27,7 +27,8 @@
 
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #fdf2f0;
+  /* Soft warm background to match image */
   min-height: 100vh;
   color: var(--text-dark);
   line-height: 1.6;
@@ -52,23 +53,20 @@ body {
   padding: 24px;
   position: relative;
   overflow: hidden;
+  background: url('maharashtra_bg.png') no-repeat center center fixed;
+  background-size: cover;
 }
 
-/* Animated Background */
+/* Overlay to improve readability if needed */
 .login-container::before {
   content: '';
   position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: linear-gradient(45deg,
-      #667eea 0%,
-      #764ba2 25%,
-      #f093fb 50%,
-      #4facfe 75%,
-      #667eea 100%);
-  animation: gradientShift 15s ease infinite;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.1);
+  /* Subtle lightening overlay */
   z-index: -1;
 }
 
@@ -1454,7 +1452,7 @@ body {
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background: #E3F2FD;
+  background: #1a5e8f;
   /* Light blue background */
   font-family: 'DM Sans', sans-serif;
   padding: 20px;

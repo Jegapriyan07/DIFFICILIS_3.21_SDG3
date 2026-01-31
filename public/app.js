@@ -216,7 +216,16 @@ function setupLogoutButtons() {
         localStorage.removeItem('token');
         currentUser = null;
         respiratoryData = [];
-        maps = {};
+
+        // Properly destroy Leaflet map instances to prevent re-initialization error
+        Object.keys(maps).forEach(key => {
+          if (maps[key]) {
+            maps[key].remove();
+            maps[key] = null;
+          }
+        });
+        maps = {}; // Reset maps object
+
         showPage('login-page');
       });
     }
@@ -403,32 +412,77 @@ function updateMedicalMeasures() {
   }
 }
 
+
 function setupHealthOfficerActions() {
-  document.getElementById('ho-generate-advisory').addEventListener('click', () => {
-    alert('Advisory document generation feature - Would integrate with document generation API');
-  });
+  const advisoryBtn = document.getElementById('ho-generate-advisory');
+  const alertBtn = document.getElementById('ho-send-alert');
 
-  document.getElementById('ho-send-alert').addEventListener('click', async () => {
-    const highRiskZones = respiratoryData.filter(z => z.severity === 'high' || z.severity === 'severe');
+  if (advisoryBtn) {
+    // Clone to remove existing listeners
+    const newAdvisoryBtn = advisoryBtn.cloneNode(true);
+    advisoryBtn.parentNode.replaceChild(newAdvisoryBtn, advisoryBtn);
 
-    if (highRiskZones.length === 0) {
-      alert('No high-risk zones to alert about');
-      return;
-    }
+    newAdvisoryBtn.addEventListener('click', () => {
+      alert('Advisory document generation feature - Would integrate with document generation API');
+    });
+  }
 
-    // Send alerts for all high-risk zones
-    for (const zone of highRiskZones) {
-      await sendAlert(zone.id, zone.severity);
-    }
+  if (alertBtn) {
+    // Clone to remove existing listeners
+    const newAlertBtn = alertBtn.cloneNode(true);
+    alertBtn.parentNode.replaceChild(newAlertBtn, alertBtn);
 
-    alert(`Alerts sent to beneficiaries in ${highRiskZones.length} high-risk zones`);
-  });
+    newAlertBtn.addEventListener('click', async () => {
+      const highRiskZones = respiratoryData.filter(z => z.severity === 'high' || z.severity === 'severe');
+
+      if (highRiskZones.length === 0) {
+        alert('No high-risk zones to alert about');
+        return;
+      }
+
+      const btn = document.getElementById('ho-send-alert');
+      const textSpan = document.getElementById('ho-send-text');
+      const originalText = textSpan.innerText;
+
+      // Disable button and show loading state
+      btn.disabled = true;
+      textSpan.innerText = 'Sending...';
+      btn.style.cursor = 'not-allowed';
+      btn.style.opacity = '0.7';
+
+      try {
+        let sentCount = 0;
+        for (const zone of highRiskZones) {
+          const success = await sendAlert(zone.id, zone.severity);
+          if (success) sentCount++;
+        }
+
+        if (sentCount > 0) {
+          // Small delay to ensure UI updates
+          setTimeout(() => {
+            alert(`Success! Alerts sent to beneficiaries in ${sentCount} high-risk zones.`);
+          }, 100);
+        } else {
+          alert('Failed to send alerts. Please check system logs.');
+        }
+      } catch (error) {
+        console.error('Error sending alerts:', error);
+        alert('An error occurred while sending alerts.');
+      } finally {
+        // Restore button state
+        btn.disabled = false;
+        textSpan.innerText = originalText;
+        btn.style.cursor = 'pointer';
+        btn.style.opacity = '1';
+      }
+    });
+  }
 }
 
 async function sendAlert(zoneId, severity) {
   const token = localStorage.getItem('token');
   try {
-    await fetch(`${API_BASE}/alerts/send`, {
+    const response = await fetch(`${API_BASE}/alerts/send`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -436,8 +490,14 @@ async function sendAlert(zoneId, severity) {
       },
       body: JSON.stringify({ zoneId, severity, language: currentLanguage })
     });
+
+    if (!response.ok) {
+      throw new Error('Server returned ' + response.status);
+    }
+    return true;
   } catch (error) {
     console.error('Failed to send alert:', error);
+    return false;
   }
 }
 

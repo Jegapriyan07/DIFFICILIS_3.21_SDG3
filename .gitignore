@@ -1,0 +1,7 @@
+node_modules
+.env
+*.log
+check_env.js
+test_sms.js
+inspect_key.js
+.gemini

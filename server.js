@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
@@ -44,6 +45,16 @@ const users = [
     phone: '+919876543212',
     language: 'hi',
     location: { lat: 21.1458, lng: 79.0882, zone: 'Civil Lines' }
+  },
+  {
+    id: 4,
+    username: 'test_user',
+    password: bcrypt.hashSync('test1234', 10),
+    role: 'beneficiary',
+    name: 'Test Beneficiary',
+    phone: '9360260470', // User provided new number
+    language: 'en',
+    location: { lat: 21.1458, lng: 79.0882, zone: 'Dharampeth' } // High risk zone
   }
 ];
 
@@ -163,21 +174,21 @@ app.get('/api/respiratory-data', authenticateToken, (req, res) => {
         ...baseData,
         aqi: zone.aqi,
         pollutants: zone.pollutants,
-        healthImpact: zone.severity === 'severe' ? 'Emergency respiratory conditions' : 
-                      zone.severity === 'high' ? 'Respiratory distress likely' :
-                      zone.severity === 'moderate' ? 'Minor irritation in sensitive groups' : 
-                      'Normal respiratory function',
-        medicalClassification: zone.severity === 'severe' ? 'SEVERE' : 
-                               zone.severity === 'high' ? 'HIGH' :
-                               zone.severity === 'moderate' ? 'MILD' : 'LOW'
+        healthImpact: zone.severity === 'severe' ? 'Emergency respiratory conditions' :
+          zone.severity === 'high' ? 'Respiratory distress likely' :
+            zone.severity === 'moderate' ? 'Minor irritation in sensitive groups' :
+              'Normal respiratory function',
+        medicalClassification: zone.severity === 'severe' ? 'SEVERE' :
+          zone.severity === 'high' ? 'HIGH' :
+            zone.severity === 'moderate' ? 'MILD' : 'LOW'
       };
     } else if (role === 'urban_planner') {
       return {
         ...baseData,
         aqi: zone.aqi,
-        zoneType: zone.zone.includes('MIDC') ? 'Industrial' : 
-                  zone.zone.includes('Railway') ? 'Transport Hub' :
-                  zone.zone.includes('Lake') || zone.zone.includes('Hills') ? 'Green Zone' : 'Residential',
+        zoneType: zone.zone.includes('MIDC') ? 'Industrial' :
+          zone.zone.includes('Railway') ? 'Transport Hub' :
+            zone.zone.includes('Lake') || zone.zone.includes('Hills') ? 'Green Zone' : 'Residential',
         trend: zone.aqi > 150 ? 'increasing' : zone.aqi > 100 ? 'stable' : 'decreasing',
         planningNote: zone.aqi > 150 ? 'Consider green buffer zones' : 'Monitor regularly'
       };
@@ -186,9 +197,9 @@ app.get('/api/respiratory-data', authenticateToken, (req, res) => {
       return {
         ...baseData,
         recommendation: zone.severity === 'severe' ? 'DO NOT go outside. Close all windows. Seek medical help if breathing difficulty.' :
-                       zone.severity === 'high' ? 'Avoid outdoor activities. Use N95 masks if going out.' :
-                       zone.severity === 'moderate' ? 'Limit strenuous outdoor activities. Sensitive groups should be cautious.' :
-                       'Air quality is good. Enjoy outdoor activities!',
+          zone.severity === 'high' ? 'Avoid outdoor activities. Use N95 masks if going out.' :
+            zone.severity === 'moderate' ? 'Limit strenuous outdoor activities. Sensitive groups should be cautious.' :
+              'Air quality is good. Enjoy outdoor activities!',
         icon: zone.severity === 'severe' || zone.severity === 'high' ? 'warning' : 'info'
       };
     }
@@ -222,7 +233,7 @@ app.get('/api/user/profile', authenticateToken, (req, res) => {
 app.put('/api/user/language', authenticateToken, (req, res) => {
   const { language } = req.body;
   const user = users.find(u => u.id === req.user.id);
-  
+
   if (!user) {
     return res.status(404).json({ error: 'User not found' });
   }
@@ -232,9 +243,10 @@ app.put('/api/user/language', authenticateToken, (req, res) => {
 });
 
 // Send alert notification
-app.post('/api/alerts/send', authenticateToken, (req, res) => {
+// Send alert notification (Integrated with Fast2SMS)
+app.post('/api/alerts/send', authenticateToken, async (req, res) => {
   const { zoneId, severity, language } = req.body;
-  
+
   // Only health officers can trigger manual alerts
   if (req.user.role !== 'health_officer') {
     return res.status(403).json({ error: 'Unauthorized' });
@@ -246,16 +258,21 @@ app.post('/api/alerts/send', authenticateToken, (req, res) => {
   }
 
   // Get all beneficiaries in the affected zone
-  const affectedUsers = users.filter(u => 
+  const affectedUsers = users.filter(u =>
     u.role === 'beneficiary' && u.location.zone === zone.zone
   );
 
-  const alerts = affectedUsers.map(user => {
-    const alertMessage = language === 'hi' ? 
-      `⚠️ वायु गुणवत्ता चेतावनी\nआपके क्षेत्र (${zone.zone}) में हवा की गुणवत्ता खराब है।\nबाहरी गतिविधियों से बचें।` :
-      `⚠️ AIR QUALITY ALERT\nPoor air quality in your area (${zone.zone}).\nAvoid outdoor activities.`;
+  const axios = require('axios');
+  const FAST2SMS_API_KEY = process.env.FAST2SMS_KEY || '2CErp6N8hwQ4k1bolAvUVH9OcMaygD07FeJnRKjGBqxm3SsZYXXRQnjYO6kZF37rLoM9hdmTDlCqJveG'; // User needs to set this
 
-    return {
+  const alerts = [];
+
+  for (const user of affectedUsers) {
+    const alertMessage = language === 'hi' ?
+      `⚠️ वायु गुणवत्ता चेतावनी: ${zone.zone} में हवा खराब है। घर के अंदर रहें।` :
+      `⚠️ ALERT: Poor Air Quality in ${zone.zone} (AQI ${zone.aqi}). Avoid outdoor activities.`;
+
+    const alertObj = {
       id: alertHistory.length + 1,
       userId: user.id,
       phone: user.phone,
@@ -263,16 +280,28 @@ app.post('/api/alerts/send', authenticateToken, (req, res) => {
       severity: severity,
       message: alertMessage,
       timestamp: new Date().toISOString(),
-      status: 'sent'
+      status: 'sending'
     };
-  });
 
-  alertHistory.push(...alerts);
+    // SIMULATION MODE REQUESTED BY USER
+    // We strictly simulate the SMS sending to avoid API key issues.
+
+    // Generic log without specific number as requested
+    console.log(`[SIMULATION] Alert sent to High Risk Beneficiary (Zone: ${zone.zone}, Severity: ${severity})`);
+
+    alertObj.status = 'sent'; // Mark as sent for the frontend to show success
+    alertObj.providerId = 'simulated-id-' + Date.now();
+
+    // push to history
+    alerts.push(alertObj);
+    alertHistory.push(alertObj);
+  }
 
   res.json({
     success: true,
     alertsSent: alerts.length,
-    alerts: alerts
+    alerts: alerts,
+    note: "SMS Alerts are in SIMULATION mode."
   });
 });
 
@@ -291,21 +320,21 @@ app.get('/api/alerts/history', authenticateToken, (req, res) => {
 // Auto-trigger alerts for high/severe zones (background job simulation)
 function checkAndTriggerAlerts() {
   const highSeverityZones = aqiData.filter(z => z.severity === 'high' || z.severity === 'severe');
-  
+
   highSeverityZones.forEach(zone => {
-    const affectedUsers = users.filter(u => 
+    const affectedUsers = users.filter(u =>
       u.role === 'beneficiary' && u.location.zone === zone.zone
     );
 
     affectedUsers.forEach(user => {
-      const lastAlert = alertHistory.find(a => 
-        a.userId === user.id && 
+      const lastAlert = alertHistory.find(a =>
+        a.userId === user.id &&
         a.zone === zone.zone &&
         new Date(a.timestamp) > new Date(Date.now() - 6 * 60 * 60 * 1000) // Last 6 hours
       );
 
       if (!lastAlert) {
-        const alertMessage = user.language === 'hi' ? 
+        const alertMessage = user.language === 'hi' ?
           `🔴 ${zone.severity === 'severe' ? 'अत्यावश्यक' : 'चेतावनी'}: वायु गुणवत्ता ${zone.severity === 'severe' ? 'आपातकाल' : 'खराब'}\nआपके क्षेत्र (${zone.zone}) में ${zone.severity === 'severe' ? 'खतरनाक' : 'खराब'} हवा है।\nघर के अंदर रहें।` :
           `🔴 ${zone.severity === 'severe' ? 'URGENT' : 'WARNING'}: Air Quality ${zone.severity === 'severe' ? 'Emergency' : 'Alert'}\n${zone.severity === 'severe' ? 'Hazardous' : 'Poor'} air in your area (${zone.zone}).\nStay indoors.`;
 
@@ -343,7 +372,7 @@ app.listen(PORT, () => {
   console.log(`   Urban Planner:  urban_planner / planner123`);
   console.log(`   Beneficiary:    beneficiary / user123`);
   console.log(`\n✅ Auto-alert system active\n`);
-  
+
   // Run initial alert check
   checkAndTriggerAlerts();
 });

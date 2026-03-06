@@ -1,5 +1,5 @@
 // Application State
-const API_BASE = 'http://localhost:3000/api';
+const API_BASE = '/api';
 let currentUser = null;
 let currentLanguage = localStorage.getItem('language') || 'en';
 let respiratoryData = [];
@@ -128,7 +128,7 @@ function getConfidenceLevel(zone) {
 function populatePrimaryAction() {
   const container = document.getElementById('ho-primary-action');
   if (!container) return;
-  
+
   // Content is hardcoded in HTML now - no need to populate dynamically
   return;
 }
@@ -400,14 +400,14 @@ function updateSeveritySummary() {
   const affectedZones = severityCounts.high + severityCounts.severe;
 
   const mainDiv = document.getElementById('ho-severity-main');
-  
+
   // Calculate average confidence from data
   const confidenceLevels = respiratoryData.map(z => {
     const cf = getConfidenceLevel(z);
     return cf === 'High' ? 0.9 : cf === 'Medium' ? 0.6 : 0.3;
   });
-  const avgConfidence = confidenceLevels.length > 0 ? 
-    (confidenceLevels.reduce((a, b) => a + b, 0) / confidenceLevels.length * 100).toFixed(0) : 
+  const avgConfidence = confidenceLevels.length > 0 ?
+    (confidenceLevels.reduce((a, b) => a + b, 0) / confidenceLevels.length * 100).toFixed(0) :
     '60';
 
   mainDiv.innerHTML = `
@@ -500,27 +500,27 @@ function updateMedicalMeasures() {
 
 function setupHealthOfficerActions() {
   console.log('🔧 Setting up health officer actions...');
-  
+
   // Use document-level event delegation for more reliable button handling
-  document.addEventListener('click', function(e) {
+  document.addEventListener('click', function (e) {
     if (e.target && (e.target.id === 'ho-send-alert' || e.target.closest('#ho-send-alert'))) {
       e.preventDefault();
       e.stopPropagation();
       console.log('✅ BUTTON CLICKED! - Alert Button');
-      
+
       // Simple alert
       setTimeout(() => {
         alert('✅ SMS Alert Sent!\n\nNotified 4 high-risk zones');
       }, 50);
     }
   }, true);
-  
+
   console.log('✅ Document-level click delegation set up');
 }
 
 function showNotification(message, type = 'info') {
   console.log('Showing notification:', type, message);
-  
+
   // Create notification container if it doesn't exist
   let notifContainer = document.getElementById('notification-container');
   if (!notifContainer) {
@@ -540,7 +540,7 @@ function showNotification(message, type = 'info') {
   // Create notification element
   const notif = document.createElement('div');
   let bgColor, borderColor, shadowColor;
-  
+
   if (type === 'success') {
     bgColor = '#10B981';
     borderColor = '#059669';
@@ -554,7 +554,7 @@ function showNotification(message, type = 'info') {
     borderColor = '#1E40AF';
     shadowColor = 'rgba(30, 58, 138, 0.3)';
   }
-  
+
   notif.style.cssText = `
     background: linear-gradient(135deg, ${bgColor} 0%, ${borderColor} 100%);
     color: white;
@@ -570,7 +570,7 @@ function showNotification(message, type = 'info') {
     border-left: 4px solid rgba(255, 255, 255, 0.3);
     backdrop-filter: blur(10px);
   `;
-  
+
   notif.textContent = message;
   notifContainer.appendChild(notif);
 
@@ -859,10 +859,10 @@ async function loadBeneficiaryDashboard() {
 function updateAQIStatusCard() {
   const userZone = respiratoryData.find(z => z.zone === currentUser.location.zone) || respiratoryData[0];
   const statusDiv = document.getElementById('ben-status-content');
-  
+
   // Get AQI value from zone data
   const aqi = userZone.aqi || Math.floor(Math.random() * 250) + 50;
-  
+
   // Determine status
   let status = 'GOOD';
   if (aqi <= 50) status = 'GOOD';
@@ -907,7 +907,7 @@ function updateAQIStatusCard() {
 
 function updatePrecautionaryMeasures() {
   const precautions = document.getElementById('ben-precautions');
-  
+
   const precautionItems = [
     {
       icon: '🏠',
@@ -967,25 +967,25 @@ function updateForecast() {
 
   // Mock forecast data
   const forecasts = [
-    { 
-      time: '12:00 PM', 
-      aqi: 152, 
-      status: 'UNHEALTHY FOR SENSITIVE' 
+    {
+      time: '12:00 PM',
+      aqi: 152,
+      status: 'UNHEALTHY FOR SENSITIVE'
     },
-    { 
-      time: '4:00 PM', 
-      aqi: 168, 
-      status: 'UNHEALTHY' 
+    {
+      time: '4:00 PM',
+      aqi: 168,
+      status: 'UNHEALTHY'
     },
-    { 
-      time: '8:00 PM', 
-      aqi: 145, 
-      status: 'UNHEALTHY FOR SENSITIVE' 
+    {
+      time: '8:00 PM',
+      aqi: 145,
+      status: 'UNHEALTHY FOR SENSITIVE'
     },
-    { 
-      time: 'Tomorrow', 
-      aqi: 98, 
-      status: 'MODERATE' 
+    {
+      time: 'Tomorrow',
+      aqi: 98,
+      status: 'MODERATE'
     }
   ];
 
@@ -1025,7 +1025,7 @@ function updateSafeZones() {
   const zonesDiv = document.getElementById('ben-safe-zones');
 
   if (safeZones.length === 0) {
-    zonesDiv.innerHTML = '<p style="padding: 16px; color: var(--text-light);">' + 
+    zonesDiv.innerHTML = '<p style="padding: 16px; color: var(--text-light);">' +
       (currentLanguage === 'hi' ? 'पास में कोई सुरक्षित क्षेत्र नहीं' : 'No safer areas available nearby') + '</p>';
     return;
   }

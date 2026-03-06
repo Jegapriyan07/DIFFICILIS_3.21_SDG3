@@ -4,10 +4,20 @@ const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const path = require('path');
+const nodemailer = require('nodemailer');
 
 const app = express();
 const PORT = 3000;
 const JWT_SECRET = 'respiratory-health-sdg3-secret-key';
+
+// Gmail SMTP Configuration
+const mailTransporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_PASSWORD
+  }
+});
 
 // Middleware
 app.use(cors());
@@ -22,6 +32,7 @@ const users = [
     password: bcrypt.hashSync('health123', 10),
     role: 'health_officer',
     name: 'Dr. Sharma',
+    email: 'jegapriyan2006@gmail.com',
     phone: '+919876543210',
     language: 'en',
     location: { lat: 21.1458, lng: 79.0882, zone: 'Dharampeth' }
@@ -32,6 +43,7 @@ const users = [
     password: bcrypt.hashSync('planner123', 10),
     role: 'urban_planner',
     name: 'Rajesh Kumar',
+    email: 'jegapriyan2006@gmail.com',
     phone: '+919876543211',
     language: 'en',
     location: { lat: 21.1458, lng: 79.0882, zone: 'Sitabuldi' }
@@ -42,6 +54,7 @@ const users = [
     password: bcrypt.hashSync('user123', 10),
     role: 'beneficiary',
     name: 'Priya Deshmukh',
+    email: 'jegapriyan2006@gmail.com',
     phone: '+919876543212',
     language: 'hi',
     location: { lat: 21.1458, lng: 79.0882, zone: 'Civil Lines' }
@@ -52,6 +65,7 @@ const users = [
     password: bcrypt.hashSync('test1234', 10),
     role: 'beneficiary',
     name: 'Test Beneficiary',
+    email: 'jegapriyan2006@gmail.com',
     phone: '9360260470', // User provided new number
     language: 'en',
     location: { lat: 21.1458, lng: 79.0882, zone: 'Dharampeth' } // High risk zone
@@ -305,6 +319,112 @@ app.post('/api/alerts/send', authenticateToken, async (req, res) => {
   });
 });
 
+// Send alert notification via EMAIL (Gmail SMTP)
+app.post('/api/alerts/send-email', authenticateToken, async (req, res) => {
+  const { zoneId, severity, language } = req.body;
+
+  // Only health officers can trigger manual alerts
+  if (req.user.role !== 'health_officer') {
+    return res.status(403).json({ error: 'Unauthorized' });
+  }
+
+  const zone = aqiData.find(z => z.id === zoneId);
+  if (!zone) {
+    return res.status(404).json({ error: 'Zone not found' });
+  }
+
+  // Get all beneficiaries in the affected zone
+  const affectedUsers = users.filter(u =>
+    u.role === 'beneficiary' && u.location.zone === zone.zone
+  );
+
+  const emailAlerts = [];
+
+  for (const user of affectedUsers) {
+    // Email subject and body based on language
+    let emailSubject, emailBody;
+
+    if (language === 'hi') {
+      emailSubject = `⚠️ वायु गुणवत्ता चेतावनी - ${zone.zone}`;
+      emailBody = `
+        <h2>वायु गुणवत्ता चेतावनी</h2>
+        <p>प्रिय ${user.name},</p>
+        <p>आपके क्षेत्र <strong>${zone.zone}</strong> में वायु गुणवत्ता बहुत खराब है।</p>
+        <div style="background: #fff3cd; padding: 15px; border-radius: 5px; margin: 15px 0;">
+          <p><strong>AQI स्तर:</strong> ${zone.aqi} (${severity})</p>
+          <p><strong>सलाह:</strong> घर के अंदर रहें और बाहरी गतिविधियों से बचें।</p>
+          <p><strong>प्रदूषक:</strong></p>
+          <ul>
+            <li>PM 2.5: ${zone.pollutants.pm25} µg/m³</li>
+            <li>PM 10: ${zone.pollutants.pm10} µg/m³</li>
+            <li>NO₂: ${zone.pollutants.no2} ppb</li>
+          </ul>
+        </div>
+        <p>अपनी स्वास्थ्य सुरक्षा का ध्यान रखें।</p>
+        <p>धन्यवाद,<br>स्वास्थ्य टीम</p>
+      `;
+    } else {
+      emailSubject = `⚠️ Air Quality Alert - ${zone.zone}`;
+      emailBody = `
+        <h2>Air Quality Alert</h2>
+        <p>Dear ${user.name},</p>
+        <p>The air quality in your area <strong>${zone.zone}</strong> has deteriorated significantly.</p>
+        <div style="background: #fff3cd; padding: 15px; border-radius: 5px; margin: 15px 0;">
+          <p><strong>AQI Level:</strong> ${zone.aqi} (${severity})</p>
+          <p><strong>Recommendation:</strong> Stay indoors and avoid outdoor activities.</p>
+          <p><strong>Pollutants:</strong></p>
+          <ul>
+            <li>PM 2.5: ${zone.pollutants.pm25} µg/m³</li>
+            <li>PM 10: ${zone.pollutants.pm10} µg/m³</li>
+            <li>NO₂: ${zone.pollutants.no2} ppb</li>
+          </ul>
+        </div>
+        <p>Take care of your health and safety.</p>
+        <p>Best Regards,<br>Health Team</p>
+      `;
+    }
+
+    const emailAlert = {
+      id: alertHistory.length + emailAlerts.length + 1,
+      userId: user.id,
+      email: user.email || `user${user.id}@example.com`, // Fallback email
+      zone: zone.zone,
+      severity: severity,
+      subject: emailSubject,
+      timestamp: new Date().toISOString(),
+      status: 'sending'
+    };
+
+    try {
+      // Send email via Gmail SMTP
+      await mailTransporter.sendMail({
+        from: process.env.GMAIL_USER,
+        to: user.email || `user${user.id}@example.com`,
+        subject: emailSubject,
+        html: emailBody
+      });
+
+      emailAlert.status = 'sent';
+      console.log(`[EMAIL SENT] Alert sent to ${user.name} (${zone.zone}, Severity: ${severity})`);
+    } catch (error) {
+      emailAlert.status = 'failed';
+      emailAlert.error = error.message;
+      console.error(`[EMAIL FAILED] Error sending to ${user.name}:`, error.message);
+    }
+
+    emailAlerts.push(emailAlert);
+    alertHistory.push(emailAlert);
+  }
+
+  res.json({
+    success: true,
+    alertsSent: emailAlerts.filter(a => a.status === 'sent').length,
+    failedCount: emailAlerts.filter(a => a.status === 'failed').length,
+    alerts: emailAlerts,
+    note: "Email alerts sent via Gmail SMTP"
+  });
+});
+
 // Get alert history
 app.get('/api/alerts/history', authenticateToken, (req, res) => {
   if (req.user.role !== 'health_officer') {
@@ -364,15 +484,21 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-app.listen(PORT, () => {
-  console.log(`\n🏥 Respiratory Health Platform Server Running`);
-  console.log(`📍 Server: http://localhost:${PORT}`);
-  console.log(`\n👥 Test Credentials:`);
-  console.log(`   Health Officer: health_officer / health123`);
-  console.log(`   Urban Planner:  urban_planner / planner123`);
-  console.log(`   Beneficiary:    beneficiary / user123`);
-  console.log(`\n✅ Auto-alert system active\n`);
+// Run initial alert check at startup
+checkAndTriggerAlerts();
 
-  // Run initial alert check
-  checkAndTriggerAlerts();
-});
+// Export for Vercel serverless
+module.exports = app;
+
+// Only call listen when running locally (not in Vercel)
+if (process.env.NODE_ENV !== 'production' || process.env.VERCEL !== '1') {
+  app.listen(PORT, () => {
+    console.log(`\n🏥 Respiratory Health Platform Server Running`);
+    console.log(`📍 Server: http://localhost:${PORT}`);
+    console.log(`\n👥 Test Credentials:`);
+    console.log(`   Health Officer: health_officer / health123`);
+    console.log(`   Urban Planner:  urban_planner / planner123`);
+    console.log(`   Beneficiary:    beneficiary / user123`);
+    console.log(`\n✅ Auto-alert system active\n`);
+  });
+}

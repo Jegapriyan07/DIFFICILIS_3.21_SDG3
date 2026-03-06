@@ -7,7 +7,7 @@ const path = require('path');
 const nodemailer = require('nodemailer');
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 const JWT_SECRET = 'respiratory-health-sdg3-secret-key';
 
 // Gmail SMTP Configuration
@@ -22,7 +22,7 @@ const mailTransporter = nodemailer.createTransport({
 // Middleware
 app.use(cors());
 app.use(express.json());
-app.use(express.static('public'));
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Mock user database
 const users = [

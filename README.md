@@ -1,3 +1,5 @@
+🏆 **Achievement:** This project was developed by Team DIFFICILIS and recognized as a **Top 3 Finalist at Central India Hackathon 3.0**, where it was selected among the leading solutions for addressing **UN Sustainable Development Goal 3 (Good Health and Well-being)**.       
+
 # Respiratory Health Risk Platform (SDG-3)
 
 A comprehensive single-page web application for monitoring respiratory health risks based on air quality data, aligned with UN Sustainable Development Goal 3 (Good Health and Well-being).
